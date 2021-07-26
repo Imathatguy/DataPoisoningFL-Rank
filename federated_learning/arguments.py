@@ -18,7 +18,7 @@ class Arguments:
 
         self.batch_size = 10
         self.test_batch_size = 1000
-        self.epochs = 10
+        self.epochs = 25
         self.lr = 0.01
         self.momentum = 0.5
         self.cuda = True
@@ -39,7 +39,7 @@ class Arguments:
         self.epoch_save_start_suffix = "start"
         self.epoch_save_end_suffix = "end"
 
-        self.num_workers = 50
+        self.num_workers = 100
         self.num_poisoned_workers = 0
 
         #self.net = Cifar10CNN

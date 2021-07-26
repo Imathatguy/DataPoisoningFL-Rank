@@ -1,4 +1,5 @@
 from .class_flipping_methods import *
+from .noise_injection_methods import *
 from .label_replacement import apply_class_label_replacement
 from .tensor_converter import convert_distributed_data_into_numpy
 from .identify_random_elements import identify_random_elements

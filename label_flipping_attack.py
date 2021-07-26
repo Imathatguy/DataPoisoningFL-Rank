@@ -8,12 +8,18 @@ from federated_learning.worker_selection import RandomSelectionStrategy
 from server import run_exp
 
 if __name__ == '__main__':
-    START_EXP_IDX = 3000
-    NUM_EXP = 3
-    NUM_POISONED_WORKERS = 0
+    # Using 1000 for baseline
+    # 2000 for default expeirment with the middle 2 digits specifying num of poisioing workers
+    START_EXP_IDX = 2000
+    NUM_EXP = 1
+
+    NUM_POISONED_WORKERS = 30
+
+    START_EXP_IDX = START_EXP_IDX + (NUM_POISONED_WORKERS * 10)
+
     REPLACEMENT_METHOD = replace_1_with_9
     KWARGS = {
-        "NUM_WORKERS_PER_ROUND" : 5
+        "NUM_WORKERS_PER_ROUND" : 100,
     }
 
     for experiment_id in range(START_EXP_IDX, START_EXP_IDX + NUM_EXP):
