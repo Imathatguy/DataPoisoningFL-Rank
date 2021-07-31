@@ -2,6 +2,21 @@ import torch
 import copy
 
 
+def no_noise(existing_parameters, parameters, random_workers, poisoned_workers):
+    ### compute gradients for all clients
+    b = zip(*[existing_parameters, parameters])
+    # copy tensor structure to replace values
+    gradients = copy.deepcopy(parameters)
+    # replace params with grads in structure
+    for n, client_params in enumerate(b):
+        assert client_params[0].keys() == client_params[1].keys()
+        for name in client_params[0].keys():
+            gradients[n][name] = client_params[1][name] - client_params[0][name]
+
+    # no change to parameters, only compute gradients
+    return parameters, gradients
+
+
 def gaussian_attack(existing_parameters, parameters, random_workers, poisoned_workers):
     """
     :param parameters: List of parameters

@@ -1,3 +1,4 @@
+from federated_learning.utils.noise_injection_methods import gaussian_attack
 from numpy.lib.npyio import save
 from loguru import logger
 from federated_learning.arguments import Arguments
@@ -17,6 +18,7 @@ import numpy as np
 import os
 import copy
 import pickle
+import pandas as pd
 
 def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method):
     """
@@ -42,8 +44,8 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
     existing_parameters = [copy.deepcopy(clients[client_idx].get_nn_parameters()) for client_idx in random_workers]
 
     for client_idx in random_workers:
-        # skip update of poisoned models:
-        if noise_method is not None:
+        # skip update of poisoned models as we overwrite gradients:
+        if noise_method is gaussian_attack:
             if client_idx in poisoned_workers:
                 args.get_logger().info("Skip  Training #{} on client #{}", str(epoch), str(clients[client_idx].get_client_index()))
                 continue
@@ -56,9 +58,6 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
 
     # modify gradients of malicious nodes with noise
     if noise_method is not None:
-        # import pickle
-        # pickle.dump([existing_parameters, parameters, random_workers, poisoned_workers], open("debug.pickle3", "wb"))
-        # assert False
         parameters, gradients = noise_method(existing_parameters, parameters, random_workers, poisoned_workers)
     
     new_nn_params = average_nn_parameters(parameters)
@@ -68,22 +67,6 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
     for n, client_grad in enumerate(gradients):
         client_idx = random_workers[n]
         client_grads[client_idx] = client_grad
-
-    #######
-    # compute difference between old and new parameters
-    # client_grads = {}
-    # b = zip(*[existing_parameters, parameters])
-
-    # for n, client_params in enumerate(b):
-    #     assert client_params[0].keys() == client_params[1].keys()
-
-    #     client_grad = {}
-    #     for name in client_params[0]:
-    #         client_grad[name] = client_params[1][name] - client_params[0][name]
-
-    #     client_idx = random_workers[n]
-    #     client_grads[client_idx] = client_grad
-    #######
 
     # update client parameters with new global parameters
     for client in clients:
@@ -146,20 +129,34 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     clients = create_clients(args, train_data_loaders, test_data_loader)
 
     results, worker_selection, epoch_grads = run_machine_learning(clients, args, poisoned_workers, noise_method)
-    save_results(results, results_files[0])
-    save_results(worker_selection, worker_selections_files[0])
-
-    exp_id = worker_selections_files[0][:4]
-
+    
+    
+    exp_id = worker_selections_files[0].split("_")[0]
     path = "results/{}".format(exp_id)
-    print(path)
+
     try:
+        print("./{}".format(path))
         os.makedirs("./{}".format(path))
     except OSError as error:
         print(error)   
+
+    save_results(results, "./{}/{}".format(path, results_files[0]))
+    save_results(worker_selection, "./{}/{}".format(path, worker_selections_files[0]))
+    
     flat_epochs = flatten_params(epoch_grads)
     for n, flat in enumerate(flat_epochs):
-        np.savetxt("./{}/{}_flatgrads.csv".format(path, n), flat, delimiter=',')
+        # save as csv format
+        # np.savetxt("./{}/{}_flatgrads.csv".format(path, n), flat, delimiter=',')
+        # save as hdf5 format
+        df = pd.DataFrame(flat, columns=None, index=None)
+        # erase existing hdf5 file
+        if n == 0:
+            mode = 'w'
+        # append subsequent epochs to existing file
+        else:
+            mode = 'a'    
+        df.to_hdf("./{}/flatgrads.hdf5".format(path), key="epoch_{}".format(n), mode=mode, index=False)
+    # save list of poisoned workers
     np.savetxt("./{}/{}_poisoned.csv".format(path, worker_selections_files[0][:-4]),
             poisoned_workers, delimiter=",", fmt="%s")
 
