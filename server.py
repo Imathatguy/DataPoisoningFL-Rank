@@ -1,4 +1,5 @@
 from federated_learning.utils.noise_injection_methods import gaussian_attack
+from federated_learning.utils.noise_injection_methods import zero_gradient
 from numpy.lib.npyio import save
 from loguru import logger
 from federated_learning.arguments import Arguments
@@ -45,7 +46,7 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
 
     for client_idx in random_workers:
         # skip update of poisoned models as we overwrite gradients:
-        if noise_method is gaussian_attack:
+        if noise_method in [gaussian_attack, zero_gradient]:
             if client_idx in poisoned_workers:
                 args.get_logger().info("Skip  Training #{} on client #{}", str(epoch), str(clients[client_idx].get_client_index()))
                 continue
@@ -58,6 +59,9 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
 
     # modify gradients of malicious nodes with noise
     if noise_method is not None:
+        # import pickle
+        # pickle.dump([existing_parameters, parameters, random_workers, poisoned_workers], open("debug.pickle","wb"))
+        # assert False
         parameters, gradients = noise_method(existing_parameters, parameters, random_workers, poisoned_workers)
     
     new_nn_params = average_nn_parameters(parameters)

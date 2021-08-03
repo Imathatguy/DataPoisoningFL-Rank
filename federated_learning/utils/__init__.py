@@ -1,5 +1,6 @@
 from .class_flipping_methods import *
 from .noise_injection_methods import gaussian_attack
+from .noise_injection_methods import zero_gradient
 from .noise_injection_methods import no_noise
 from .label_replacement import apply_class_label_replacement
 from .tensor_converter import convert_distributed_data_into_numpy
