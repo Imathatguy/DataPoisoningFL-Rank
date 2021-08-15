@@ -30,7 +30,10 @@ from server import run_exp
 
 if __name__ == '__main__':
 
-    for NUM_POISONED_WORKERS in [5]:#, 10, 15, 20, 25, 30]:
+    # for NUM_POISONED_WORKERS in [5, 10, 15, 20, 25, 30]:
+    # for NUM_POISONED_WORKERS in [5, 10, 15]:
+    # for NUM_POISONED_WORKERS in [20, 25, 30]:
+    for NUM_POISONED_WORKERS in [50]:
 
         # Using 10000 for baseline
         # the 2-3 digits (X20XX) specifying num of poisioning workers
@@ -39,7 +42,7 @@ if __name__ == '__main__':
         # 30000 for gaussian noise
         START_EXP_IDX = 20000
         NUM_OFFSET = 0
-        NUM_EXP = 1
+        NUM_EXP = 20
 
         START_EXP_IDX = START_EXP_IDX + (NUM_POISONED_WORKERS * 100)
 

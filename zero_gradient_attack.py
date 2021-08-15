@@ -16,16 +16,17 @@ if __name__ == '__main__':
 
     # for NUM_POISONED_WORKERS in [5, 10, 15, 20, 25, 30]:
     # for NUM_POISONED_WORKERS in [5, 10, 15]:
-    for NUM_POISONED_WORKERS in [20, 25, 30]:
+    # for NUM_POISONED_WORKERS in [20, 25, 30]:
+    for NUM_POISONED_WORKERS in [20]:
 
         # Using 10000 for baseline
         # the 2-3 digits (X20XX) specifying num of poisioning workers
         # the 4-5 digits (XXX00) specifying run number
         # 20000 for label flipping
         # 30000 for gaussian noise
-        START_EXP_IDX = 40000
-        NUM_OFFSET = 0
-        NUM_EXP = 20
+        START_EXP_IDX = 80000
+        NUM_OFFSET = 17
+        NUM_EXP = 3
 
         START_EXP_IDX = START_EXP_IDX + (NUM_POISONED_WORKERS * 100)
 
