@@ -100,6 +100,46 @@ def zero_gradient(existing_parameters, parameters, random_workers, poisoned_work
     return parameters, gradients
 
 
+def sign_flipping(existing_parameters, parameters, random_workers, poisoned_workers):
+    """
+    :param parameters: List of parameters
+    :type parameters: list
+    :param random_workers: indices of randomized workers
+    :type random_workers: list(int)
+    :param poisoned_workers: indices of poisoned workers
+    :type poisoned_workers: list(int)
+    :return: new class IDs
+    """
+    ### compute gradients for all clients
+    b = zip(*[existing_parameters, parameters])
+    # copy tensor structure to replace values
+    gradients = copy.deepcopy(parameters)
+    # replace params with grads in structure
+    for n, client_params in enumerate(b):
+        assert client_params[0].keys() == client_params[1].keys()
+        for name in client_params[0].keys():
+            gradients[n][name] = client_params[1][name] - client_params[0][name]
+
+    ### compute sum of non-poisoned client gradients
+    # copy tensor structure to replace values
+    mu_grad = copy.deepcopy(gradients[0])
+    benign_workers = [n for n, client_idx in enumerate(random_workers) if client_idx not in poisoned_workers]
+    for name in mu_grad.keys():
+        mu_grad[name] = sum([gradients[n][name].data for n in benign_workers]) / len(benign_workers)
+    ### modify poisoned gradients
+    poisoned_idx = [n for n, client_idx in enumerate(random_workers) if client_idx in poisoned_workers]
+    for n in poisoned_idx:
+        for name in parameters[n].keys():
+            # copy sum of benign gradients to poisoned user
+            gradients[n][name] = copy.deepcopy(mu_grad[name])
+            # divide sum of gradients by number of poisoned nodes
+            gradients[n][name].mul_(-3.0)
+            # compute final parameters for poisoned client
+            parameters[n][name] = existing_parameters[n][name].add(1, gradients[n][name])
+
+    return parameters, gradients
+
+
 # gaussian prototype from paper
 def _white(messages, byzantinesize):
     # The mean is the same, the variance is larger
@@ -113,6 +153,12 @@ def _white(messages, byzantinesize):
 def _zeroGradient(messages, byzantinesize):
     s = torch.sum(messages[0:-byzantinesize], dim=0)
     messages[-byzantinesize:].copy_(-s / byzantinesize)
+
+
+def _maxValue(messages, byzantinesize):
+    mu = torch.mean(messages[0:-byzantinesize], dim=0)
+    meliciousMessage = -3*mu
+    messages[-byzantinesize:].copy_(meliciousMessage)
 
 
 # compute difference in parameters prototype
@@ -153,12 +199,12 @@ if __name__ == "__main__":
     mu_grad = copy.deepcopy(gradients[0])
     benign_workers = [n for n, client_idx in enumerate(random_workers) if client_idx not in poisoned_workers]
     for name in mu_grad.keys():
-        mu_grad[name] = sum([gradients[n][name].data for n in benign_workers]) / 1.0
+        mu_grad[name] = sum([gradients[n][name].data for n in benign_workers]) / len(benign_workers)
 
     # modify poisoned gradients
     poisoned_idx = [n for n, client_idx in enumerate(random_workers) if client_idx in poisoned_workers]
-    n_poi = len(poisoned_idx)
-    n_poi = n_poi * -1.0
+    # scale = len(random_workers) - len(poisoned_idx)
+    # scale = -3.0 / scale
     for n in poisoned_idx:
         pass   
 
@@ -166,7 +212,7 @@ if __name__ == "__main__":
         for name in parameters[n].keys():
             gradients[n][name] = copy.deepcopy(mu_grad[name])
             # print(gradients[n][name])
-            gradients[n][name].div_(n_poi)
+            gradients[n][name].mul_(-3.0)
             # print(gradients[n][name])
             # compute final parameters for client
             # print(existing_parameters[n][name])
