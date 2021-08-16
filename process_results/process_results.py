@@ -43,10 +43,12 @@ def mandera(gradients, poi_index):
 
 
 if __name__ == "__main__":
+    # path for 60000, 80000
+    # file_path = 'G:/active_projects/RankPoisonFL/'
+    # path for 70000
+    file_path = 'Z:/'
 
-    file_path = 'G:/active_projects/RankPoisonFL/'
-
-    exp_series = 80000
+    exp_series = 70000
     n_runs = 20
     # n_poi_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     n_poi_list = [5, 10, 15, 20, 25, 30]
