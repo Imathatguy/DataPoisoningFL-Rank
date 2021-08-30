@@ -1,5 +1,6 @@
 from federated_learning.utils.noise_injection_methods import gaussian_attack
 from federated_learning.utils.noise_injection_methods import zero_gradient
+from federated_learning.utils.defense_methods import mandera_detect
 from numpy.lib.npyio import save
 from loguru import logger
 from federated_learning.arguments import Arguments
@@ -18,11 +19,12 @@ from client import Client
 import numpy as np
 import os
 import copy
+import time
 import pickle
 import torch
 import pandas as pd
 
-def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method):
+def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method, def_method):
     """
     Train a subset of clients per round.
 
@@ -32,6 +34,10 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
     :type args: Arguments
     :param clients: clients
     :type clients: list(Client)
+    :param poisoned_workers: indices of poisoned workers
+    :type poisoned_workers: list(int)
+    :param noise_method: the specified method of applying noise to the parameters
+    :type poisoned_workers: class federated_learning.utils.noise_injection_methods
     :param poisoned_workers: indices of poisoned workers
     :type poisoned_workers: list(int)
     """
@@ -60,12 +66,15 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
 
     # modify gradients of malicious nodes with noise
     if noise_method is not None:
-        # import pickle
-        # pickle.dump([existing_parameters, parameters, random_workers, poisoned_workers], open("debug.pickle","wb"))
-        # assert False
         parameters, gradients = noise_method(existing_parameters, parameters, random_workers, poisoned_workers)
     
-    new_nn_params = average_nn_parameters(parameters)
+    # detection defense occurs just before parameter aggregation
+    if def_method in [mandera_detect]:
+        bad_indexes = mandera_detect(gradients) 
+        good_parameters = [param for n, param in enumerate(parameters) if n not in bad_indexes]
+        new_nn_params = average_nn_parameters(good_parameters)
+    else:
+        new_nn_params = average_nn_parameters(parameters)
 
     # Order client gradients
     client_grads = {}
@@ -92,7 +101,7 @@ def create_clients(args, train_data_loaders, test_data_loader):
 
     return clients
 
-def run_machine_learning(clients, args, poisoned_workers, noise_method):
+def run_machine_learning(clients, args, poisoned_workers, noise_method, def_method):
     """
     Complete machine learning over a series of clients.
     """
@@ -100,7 +109,7 @@ def run_machine_learning(clients, args, poisoned_workers, noise_method):
     worker_selection = []
     epoch_grads = []
     for epoch in range(1, args.get_num_epochs() + 1):
-        results, workers_selected, client_grads = train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method)
+        results, workers_selected, client_grads = train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method, def_method)
 
         epoch_test_set_results.append(results)
         worker_selection.append(workers_selected)
@@ -108,7 +117,7 @@ def run_machine_learning(clients, args, poisoned_workers, noise_method):
 
     return convert_results_to_csv(epoch_test_set_results), worker_selection, epoch_grads
 
-def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_strategy, idx, noise_method=None):
+def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_strategy, idx, noise_method=None, def_method=None):
     log_files, results_files, models_folders, worker_selections_files = generate_experiment_ids(idx, 1)
 
     # Initialize logger
@@ -135,8 +144,12 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
 
     clients = create_clients(args, train_data_loaders, test_data_loader)
 
-    results, worker_selection, epoch_grads = run_machine_learning(clients, args, poisoned_workers, noise_method)
-    
+    # start timer
+    start_time = time.perf_counter()
+    # run ML training/attack/defense
+    results, worker_selection, epoch_grads = run_machine_learning(clients, args, poisoned_workers, noise_method, def_method)
+    # end timer
+    end_time = time.perf_counter()
     
     exp_id = worker_selections_files[0].split("_")[0]
     path = "results/{}".format(exp_id)
@@ -147,30 +160,33 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     except OSError as error:
         print(error)   
 
+    # save perdiction performance results
     save_results(results, "./{}/{}".format(path, results_files[0]))
-    save_results(worker_selection, "./{}/{}".format(path, worker_selections_files[0]))
+
+    # save timing results
+    np.savetxt("./{}/{}_timing.csv".format(path, results_files[0][:-4]),
+                [start_time, end_time], delimiter=",", fmt="%s")
     
-    flat_epochs = flatten_params(epoch_grads)
-    for n, flat in enumerate(flat_epochs):
-        # save as csv format
-        # np.savetxt("./{}/{}_flatgrads.csv".format(path, n), flat, delimiter=',')
-        # save as hdf5 format
-        df = pd.DataFrame(flat, columns=None, index=None)
-        # erase existing hdf5 file
-        if n == 0:
-            mode = 'w'
-        # append subsequent epochs to existing file
-        else:
-            mode = 'a'    
-        df.to_hdf("./{}/flatgrads.hdf5".format(path), key="epoch_{}".format(n), mode=mode, index=False)
-    # save list of poisoned workers
-    np.savetxt("./{}/{}_poisoned.csv".format(path, worker_selections_files[0][:-4]),
-            poisoned_workers, delimiter=",", fmt="%s")
+    # only save gradients if not running full defense    
+    if def_method is None:
+        save_results(worker_selection, "./{}/{}".format(path, worker_selections_files[0]))
 
-    # Entry point for processing gradients to bad nodes
-
-    
-
+        flat_epochs = flatten_params(epoch_grads)
+        for n, flat in enumerate(flat_epochs):
+            # save as csv format
+            # np.savetxt("./{}/{}_flatgrads.csv".format(path, n), flat, delimiter=',')
+            # save as hdf5 format
+            df = pd.DataFrame(flat, columns=None, index=None)
+            # erase existing hdf5 file
+            if n == 0:
+                mode = 'w'
+            # append subsequent epochs to existing file
+            else:
+                mode = 'a'    
+            df.to_hdf("./{}/flatgrads.hdf5".format(path), key="epoch_{}".format(n), mode=mode, index=False)
+        # save list of poisoned workers
+        np.savetxt("./{}/{}_poisoned.csv".format(path, worker_selections_files[0][:-4]),
+                poisoned_workers, delimiter=",", fmt="%s")
 
     logger.remove(handler)
 
