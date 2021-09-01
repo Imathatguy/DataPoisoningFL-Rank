@@ -2,10 +2,46 @@ from sklearn.cluster import KMeans
 from statistics import StatisticsError, mode
 import pandas as pd
 import numpy as np
+import torch
 
 
 def no_detect(gradients):
     return []
+
+
+def multi_krum(gradients, n_attackers, multi_k=False):
+
+    grads = flatten_grads(gradients)
+
+    candidates = []
+    candidate_indices = []
+    remaining_updates = torch.from_numpy(grads)
+    all_indices = np.arange(len(grads))
+
+    while len(remaining_updates) > 2 * n_attackers + 2:
+        torch.cuda.empty_cache()
+        distances = []
+        for update in remaining_updates:
+            distance = []
+            for update_ in remaining_updates:
+                distance.append(torch.norm((update - update_)) ** 2)
+            distance = torch.Tensor(distance).float()
+            distances = distance[None, :] if not len(distances) else torch.cat((distances, distance[None, :]), 0)
+
+        distances = torch.sort(distances, dim=1)[0]
+        scores = torch.sum(distances[:, :len(remaining_updates) - 2 - n_attackers], dim=1)
+        indices = torch.argsort(scores)[:len(remaining_updates) - 2 - n_attackers]
+
+        candidate_indices.append(all_indices[indices[0].cpu().numpy()])
+        all_indices = np.delete(all_indices, indices[0].cpu().numpy())
+        candidates = remaining_updates[indices[0]][None, :] if not len(candidates) else torch.cat((candidates, remaining_updates[indices[0]][None, :]), 0)
+        remaining_updates = torch.cat((remaining_updates[:indices[0]], remaining_updates[indices[0] + 1:]), 0)
+        if not multi_k:
+            break
+
+    aggregate = torch.mean(candidates, dim=0)
+
+    return aggregate, np.array(candidate_indices)
 
 
 def mandera_detect(gradients):
@@ -57,4 +93,14 @@ def flatten_grads(gradients):
 
 if __name__ == "__main__":
     import pickle
-    grads = pickle.load(open("debug_grads.pickle", "rb"))
+    grads_1 = pickle.load(open("debug_grads.pickle", "rb"))
+
+    # Quick tests in ipython with %timeit
+
+    # # 2.34 s ± 11.4 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    # _, index = multi_krum(grads_1, 10, False)
+    # print(index)
+
+    # # 805 ms ± 6.77 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    # index = mandera_detect(grads_1)
+    # print(index)
