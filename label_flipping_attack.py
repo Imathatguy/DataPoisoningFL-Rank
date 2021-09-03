@@ -8,6 +8,7 @@ from federated_learning.utils import replace_6_with_0
 from federated_learning.utils import no_noise
 from federated_learning.utils.defense_methods import mandera_detect
 from federated_learning.utils.defense_methods import multi_krum
+from federated_learning.utils.defense_methods import bulyan
 from federated_learning.worker_selection import RandomSelectionStrategy
 from server import run_exp
 
@@ -51,7 +52,7 @@ if __name__ == '__main__':
         # 80000 for zero grad
         # 90000 for sign flip
         # Add 100000 for full defense method.
-        START_EXP_IDX = 220000
+        START_EXP_IDX = 360000
         NUM_OFFSET = 0
         NUM_EXP = 10
 
@@ -59,7 +60,7 @@ if __name__ == '__main__':
 
         REPLACEMENT_METHOD = replace_1_with_9
         NOISE_METHOD = no_noise
-        DEF_METHOD = multi_krum
+        DEF_METHOD = bulyan
         KWARGS = {
             "NUM_WORKERS_PER_ROUND" : 100,
         }
