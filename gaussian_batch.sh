@@ -13,7 +13,7 @@ do
         do 
             for P in 5 10 15 20 25 30
             do 
-                sbatch --export D=$D,R=$R,P=$P,M=$M --job-name=ZG.$P.$M.$R.$D gaussian.jobscript
+                sbatch --export D=$D,R=$R,P=$P,M=$M --job-name=GN.$P.$M.$R.$D gaussian.jobscript
             done
         done
     done
