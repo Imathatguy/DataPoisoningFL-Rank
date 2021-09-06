@@ -13,7 +13,7 @@ do
         do 
             for P in 5 10 15 20 25 30
             do 
-                sbatch --export D=$D,R=$R,P=$P,M=$M --job-name=sign.$P.$M.$R.$D sign_flipping.jobscript
+                sbatch --export D=$D,R=$R,P=$P,M=$M --job-name=SF.$P.$M.$R.$D sign_flipping.jobscript
             done
         done
     done
