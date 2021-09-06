@@ -84,8 +84,12 @@ if __name__ == '__main__':
         START_EXP_IDX = 200000
     elif DEF_METHOD == bulyan:
         START_EXP_IDX = 300000
+    elif DEF_METHOD == median:
+        START_EXP_IDX = 400000
+    elif DEF_METHOD == tr_mean:
+        START_EXP_IDX = 500000
     else:
-        assert DEF_METHOD in [None, mandera_detect, multi_krum, bulyan]
+        assert DEF_METHOD in [None, mandera_detect, multi_krum, bulyan, median, tr_mean]
 
     if DATASET == "FASHION":
         START_EXP_IDX = START_EXP_IDX + 30000
