@@ -15,10 +15,18 @@ def median(parameters):
     
     new_params = {}
     for name in parameters[0].keys():
-        # quantile or mean on gradient is the same as new parameters where constant is added to all elements.
-        new_params[name] = torch.quantile(torch.stack([param[name].data for param in parameters]), dim=0, q=0.5)
-        # ensure param shape is preserved
-        assert parameters[0][name].shape == new_params[name].shape
+        print(name)
+        print(parameters[0][name].shape)
+        if len(parameters[0][name].shape) > 0:
+            # quantile or mean on gradient is the same as new parameters where constant is added to all elements.
+            print(torch.stack([param[name].data for param in parameters]).shape)
+            new_params[name] = torch.quantile(torch.stack([param[name].data for param in parameters]), dim=0, q=0.5)
+        else:
+            # handle 0 dimensional parameter
+            new_params[name] = parameters[0][name]           
+ 
+    # ensure param shape is preserved
+    assert parameters[0][name].shape == new_params[name].shape
 
     return new_params
 
@@ -29,9 +37,13 @@ def tr_mean(parameters, n_attackers):
 
     new_params = {}
     for name in parameters[0].keys():
-        potential_params = torch.sort(torch.stack([param[name].data for param in parameters]), 0)[0]
-        # quantile or mean on gradient is the same as new parameters where constant is added to all elements.
-        new_params[name] = torch.mean(potential_params[n_attackers:-n_attackers], 0)
+        if len(parameters[0][name].shape) > 0:
+            potential_params = torch.sort(torch.stack([param[name].data for param in parameters]), 0)[0]
+            # quantile or mean on gradient is the same as new parameters where constant is added to all elements.
+            new_params[name] = torch.mean(potential_params[n_attackers:-n_attackers], 0)
+        else:
+            # handle 0 dimensional parameter
+            new_params[name] = parameters[0][name]
         # ensure param shape is preserved
         assert parameters[0][name].shape == new_params[name].shape
 
