@@ -2,11 +2,40 @@ from sklearn.cluster import KMeans
 from statistics import StatisticsError, mode
 import pandas as pd
 import numpy as np
+from statistics import median
 import torch
 
 
 def no_detect(gradients):
     return []
+
+
+# this function does not return candidates
+def median(parameters):
+    
+    new_params = {}
+    for name in parameters[0].keys():
+        # quantile or mean on gradient is the same as new parameters where constant is added to all elements.
+        new_params[name] = torch.quantile(torch.stack([param[name].data for param in parameters]), dim=0, q=0.5)
+        # ensure param shape is preserved
+        assert parameters[0][name].shape == new_params[name].shape
+
+    return new_params
+
+
+# this function does not return candidates
+def tr_mean(parameters, n_attackers):
+    assert n_attackers > 0
+
+    new_params = {}
+    for name in parameters[0].keys():
+        potential_params = torch.sort(torch.stack([param[name].data for param in parameters]), 0)[0]
+        # quantile or mean on gradient is the same as new parameters where constant is added to all elements.
+        new_params[name] = torch.mean(potential_params[n_attackers:-n_attackers], 0)
+        # ensure param shape is preserved
+        assert parameters[0][name].shape == new_params[name].shape
+
+    return new_params
 
 
 def multi_krum(gradients, n_attackers, multi_k=False):
@@ -135,6 +164,12 @@ if __name__ == "__main__":
     grads_1 = pickle.load(open("debug_grads.pickle", "rb"))
 
     # Quick tests in ipython with %timeit
+
+    # # 232 ms ± 3.47 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    # new_param = median(grads_1)
+
+    # # 225 ms ± 1.06 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
+    # new_param = tr_mean(grads_1, 10)
 
     # # 2.34 s ± 11.4 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
     # _, index = multi_krum(grads_1, 10, False)

@@ -7,9 +7,9 @@
 
 for D in 'FASHION' 'CIFAR10'
 do
-    for M in 'bulyan'
+    for M in 'median'
     do
-        for R in 1 2 3 4 5 6 7 8 9
+        for R in 0 1 2 3 4 5 6 7 8 9
         do 
             for P in 5 10 15 20 25 30
             do 

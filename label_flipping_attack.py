@@ -8,6 +8,8 @@ from federated_learning.utils import no_noise
 from federated_learning.utils.defense_methods import mandera_detect
 from federated_learning.utils.defense_methods import multi_krum
 from federated_learning.utils.defense_methods import bulyan
+from federated_learning.utils.defense_methods import median
+from federated_learning.utils.defense_methods import tr_mean
 from federated_learning.worker_selection import RandomSelectionStrategy
 from server import run_exp
 import argparse
@@ -45,8 +47,14 @@ if __name__ == '__main__':
     elif args.def_method == "bulyan":
         START_EXP_IDX = 300000
         DEF_METHOD = bulyan
+    elif args.def_method == "median":
+        START_EXP_IDX = 400000
+        DEF_METHOD = median
+    elif args.def_method == "tr_mean":
+        START_EXP_IDX = 500000
+        DEF_METHOD = tr_mean
     else:
-        assert args.def_method in [None, "mandera_detect", "multi_krum", "bulyan"]
+        assert args.def_method in [None, "mandera_detect", "multi_krum", "bulyan", "median", "tr_mean"]
 
     # Using 10000 for baseline
     # the 2-3 digits (X20XX) specifying num of poisioning workers

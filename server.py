@@ -3,6 +3,8 @@ from federated_learning.utils.noise_injection_methods import zero_gradient
 from federated_learning.utils.defense_methods import mandera_detect
 from federated_learning.utils.defense_methods import multi_krum
 from federated_learning.utils.defense_methods import bulyan
+from federated_learning.utils.defense_methods import median
+from federated_learning.utils.defense_methods import tr_mean
 from numpy.lib.npyio import save
 from loguru import logger
 from federated_learning.arguments import Arguments
@@ -83,6 +85,10 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
         _, good_indexes = bulyan(gradients, len(poisoned_workers))
         good_parameters = [param for n, param in enumerate(parameters) if n in good_indexes]
         new_nn_params = average_nn_parameters(good_parameters)
+    elif def_method in [median]:
+        new_nn_params = median(parameters)
+    elif def_method in [tr_mean]:
+        new_nn_params = tr_mean(parameters, len(poisoned_workers))
     else:
         new_nn_params = average_nn_parameters(parameters)
 
