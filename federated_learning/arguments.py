@@ -42,11 +42,11 @@ class Arguments:
         self.num_workers = 100
         self.num_poisoned_workers = 0
 
-        self.net = Cifar10CNN
+        # self.net = Cifar10CNN
         # self.net = FashionMNISTCNN
 
-        self.train_data_loader_pickle_path = "data_loaders/cifar10/train_data_loader.pickle"
-        self.test_data_loader_pickle_path = "data_loaders/cifar10/test_data_loader.pickle"
+        # self.train_data_loader_pickle_path = "data_loaders/cifar10/train_data_loader.pickle"
+        # self.test_data_loader_pickle_path = "data_loaders/cifar10/test_data_loader.pickle"
         # self.train_data_loader_pickle_path = "data_loaders/fashion-mnist/train_data_loader.pickle"
         # self.test_data_loader_pickle_path = "data_loaders/fashion-mnist/test_data_loader.pickle"
 
@@ -55,6 +55,18 @@ class Arguments:
         self.default_model_folder_path = "default_models"
 
         self.data_path = "data"
+
+    def set_dataset_net_and_loader(self, dataset):
+        if dataset == "CIFAR10":
+            self.net = Cifar10CNN
+            self.train_data_loader_pickle_path = "data_loaders/cifar10/train_data_loader.pickle"
+            self.test_data_loader_pickle_path = "data_loaders/cifar10/test_data_loader.pickle"
+        elif dataset == "FASHION":
+            self.net = FashionMNISTCNN
+            self.train_data_loader_pickle_path = "data_loaders/fashion-mnist/train_data_loader.pickle"
+            self.test_data_loader_pickle_path = "data_loaders/fashion-mnist/test_data_loader.pickle"
+        else:
+            assert dataset in ['CIFAR10', 'FASHION']
 
     def get_round_worker_selection_strategy(self):
         return self.round_worker_selection_strategy

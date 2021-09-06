@@ -127,7 +127,7 @@ def run_machine_learning(clients, args, poisoned_workers, noise_method, def_meth
 
     return convert_results_to_csv(epoch_test_set_results), worker_selection, epoch_grads
 
-def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_strategy, idx, noise_method=None, def_method=None):
+def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_strategy, idx, noise_method=None, def_method=None, dataset="FASHION"):
     log_files, results_files, models_folders, worker_selections_files = generate_experiment_ids(idx, 1)
 
     # Initialize logger
@@ -138,6 +138,7 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     args.set_num_poisoned_workers(num_poisoned_workers)
     args.set_round_worker_selection_strategy_kwargs(KWARGS)
     args.set_client_selection_strategy(client_selection_strategy)
+    args.set_dataset_net_and_loader(dataset)
     args.log()
 
     train_data_loader = load_train_data_loader(logger, args)
