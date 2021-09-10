@@ -30,7 +30,7 @@ if __name__ == '__main__':
 
     DATASET = args.dataset
     
-    if args.def_method == None:
+    if args.def_method == "None":
         START_EXP_IDX = 00000
         DEF_METHOD = None
     elif args.def_method == "mandera_detect":
@@ -49,7 +49,7 @@ if __name__ == '__main__':
         START_EXP_IDX = 500000
         DEF_METHOD = tr_mean
     else:
-        assert args.def_method in [None, "mandera_detect", "multi_krum", "bulyan", "median", "tr_mean"]
+        assert args.def_method in ["None", "mandera_detect", "multi_krum", "bulyan", "median", "tr_mean"]
 
     # Using 10000 for baseline
     # the 2-3 digits (X20XX) specifying num of poisioning workers

@@ -74,7 +74,36 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
     
     # detection defense occurs just before parameter aggregation
     if def_method in [mandera_detect]:
-        bad_indexes = mandera_detect(gradients) 
+        bad_indexes = mandera_detect(gradients)
+        # # compute metrics and save
+        # def compute_detect_metrics(bad_ind, poi_ind, n_nodes):
+        #     detected = set(poi_ind).intersection(set(bad_ind))
+        #     P = len(bad_ind)
+        #     TP = len(detected)
+        #     FP = P - TP
+        #     FN = len(bad_ind) - TP
+        #     TN = (n_nodes-P) - FP
+
+        #     precision = TP/(TP+FP)
+        #     recall = TP/(TP+FN)
+        #     accuracy =(TP+TN)/(TP+TN+FP+FN)
+        #     if (precision + recall) == 0:
+        #         f1 = 0
+        #     else:
+        #         f1 = (2 * precision * recall) / (precision + recall)
+
+        #     return [accuracy, precision, recall, f1]
+        # metrics = compute_detect_metrics(bad_indexes, poisoned_workers, len(parameters))
+        # if epoch == 1:
+        #     _df = pd.DataFrame(metrics).transpose()
+        #     _df.columns = ["accuracy", "precision", "recall", "f1"]
+        #     _df.to_csv("test.csv", mode='w', index=False, header=True)
+        #     #with open("test.txt", "wb") as f:
+        #     #    np.savetxt(f, np.array(metrics).transpose(), delimiter=',', fmt='%10.5f')
+        # else:
+        #     pd.DataFrame(metrics).transpose().to_csv("test.csv", mode='a', index=False, header=False)
+        #     #with open("test.txt", "ab") as f:
+        #     #    np.savetxt(f, np.array(metrics).transpose(), delimiter=',', fmt='%10.5f')
         good_parameters = [param for n, param in enumerate(parameters) if n not in bad_indexes]
         new_nn_params = average_nn_parameters(good_parameters)
     elif def_method in [multi_krum]:

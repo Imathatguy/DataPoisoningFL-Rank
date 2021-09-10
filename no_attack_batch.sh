@@ -11,7 +11,7 @@ do
     do
         for R in 0 1 2 3 4 5 6 7 8 9
         do 
-            for P in 5 10 15 20 25 30
+            for P in 0
             do 
                 sbatch --export D=$D,R=$R,P=$P,M=$M --job-name=LF.$P.$M.$R.$D label_flipping.jobscript
             done

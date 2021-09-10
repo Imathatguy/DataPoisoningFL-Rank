@@ -127,7 +127,7 @@ def bulyan(gradients, n_attackers):
 def mandera_detect(gradients):
     # gradients is a dataframe, poi_index is a lite-type object
     if type(gradients) == pd.DataFrame:
-        vars = gradients.rank(axis=0, method='first').var(axis=1)
+        vars = gradients.rank(axis=0, method='average').var(axis=1)
     elif type(gradients) == list:
         vars = pd.DataFrame(flatten_grads(gradients)).rank(axis=0, method='first').var(axis=1)
     else:
