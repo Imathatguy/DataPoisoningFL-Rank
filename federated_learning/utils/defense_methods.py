@@ -129,7 +129,8 @@ def mandera_detect(gradients):
     if type(gradients) == pd.DataFrame:
         vars = gradients.rank(axis=0, method='average').var(axis=1)
     elif type(gradients) == list:
-        vars = pd.DataFrame(flatten_grads(gradients)).rank(axis=0, method='first').var(axis=1)
+        flat_grad = flatten_grads(gradients)
+        vars = pd.DataFrame(flat_grad).rank(axis=0, method='average').var(axis=1)
     else:
         print("Support not implemented for generic matrixes, please use a pandas dataframe, or a list to be cast into a dataframe")
         assert type(gradients) in [pd.DataFrame, list]
@@ -137,12 +138,37 @@ def mandera_detect(gradients):
     model = KMeans(n_clusters=2)
     group = model.fit_predict(vars.values.reshape(-1,1))
 
-    # get the minority label
-    try:
-        bad_label = (mode(group) + 1) % 2
-    except StatisticsError:
-        # equally sized groups, select the first group to keep.
+    # mark the group with the lower variance as malicious
+    #print(vars)
+    #print(len(group))
+    # vars['group'] = group
+    group = np.array(group)
+    #print(flat_grad.shape)
+    #print(np.unique(flat_grad, axis=0).shape)
+    #print(flat_grad[85])
+    #print(flat_grad[95])
+    diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
+    diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
+    # print(diff_g0, diff_g1)
+    #print(np.var(vars[group == 1], axis=0))
+    #print(np.var(vars[group == 0], axis=0))
+   
+    # if no group found with matching gradients, mark the smaller group as malicious
+    if diff_g0 == diff_g1:
+        # get the minority label
+        try:
+            bad_label = (mode(group) + 1) % 2
+        except StatisticsError:
+            # equally sized groups, select the first group to keep.
+            bad_label = 0
+    elif diff_g0 < diff_g1:
+        bad_label = 1
+    elif diff_g0 > diff_g1:
         bad_label = 0
+    else:
+        assert False
+        
+    # print(bad_label)
 
     # see which indexes match the minority label
     predict_poi = [n for n, l in enumerate(group) if l == bad_label]
@@ -173,7 +199,7 @@ def flatten_grads(gradients):
 
 if __name__ == "__main__":
     import pickle
-    grads_1 = pickle.load(open("debug_grads.pickle", "rb"))
+    grads_1 = pickle.load(open("sf_debug_grads.pickle", "rb"))
 
     # Quick tests in ipython with %timeit
 
@@ -192,5 +218,5 @@ if __name__ == "__main__":
     # print(index)
 
     # # 805 ms ± 6.77 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    # index = mandera_detect(grads_1)
-    # print(index)
+    index = mandera_detect(grads_1)
+    print(index)

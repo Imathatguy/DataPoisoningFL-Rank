@@ -132,6 +132,9 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
         args.get_logger().info("Updating parameters on client #{}", str(client.get_client_index()))
         client.update_nn_parameters(new_nn_params)
 
+    # import pickle
+    # pickle.dump(gradients, open("sf_debug_grads.pickle", "wb"))
+
     torch.cuda.empty_cache()
 
     return clients[0].test(), random_workers, client_grads
@@ -212,7 +215,7 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     # save timing results
     np.savetxt("./{}/{}_timing.csv".format(path, results_files[0][:-4]),
                 [start_time, end_time], delimiter=",", fmt="%s")
-    
+
     # only save gradients if not running full defense    
     if def_method is None:
         save_results(worker_selection, "./{}/{}".format(path, worker_selections_files[0]))
