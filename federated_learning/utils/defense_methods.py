@@ -80,9 +80,10 @@ def multi_krum(gradients, n_attackers, multi_k=False):
         if not multi_k:
             break
 
-    aggregate = torch.mean(candidates, dim=0)
+    # aggregate = torch.mean(candidates, dim=0)
 
-    return aggregate, np.array(candidate_indices)
+    # return aggregate, np.array(candidate_indices)
+    return None, np.array(candidate_indices)
 
 
 def bulyan(gradients, n_attackers):
@@ -116,12 +117,13 @@ def bulyan(gradients, n_attackers):
         bulyan_cluster = remaining_updates[indices[0]][None, :] if not len(bulyan_cluster) else torch.cat((bulyan_cluster, remaining_updates[indices[0]][None, :]), 0)
         remaining_updates = torch.cat((remaining_updates[:indices[0]], remaining_updates[indices[0] + 1:]), 0)
 
-    n, d = bulyan_cluster.shape
-    param_med = torch.median(bulyan_cluster, dim=0)[0]
-    sort_idx = torch.argsort(torch.abs(bulyan_cluster - param_med), dim=0)
-    sorted_params = bulyan_cluster[sort_idx, torch.arange(d)[None, :]]
+    # n, d = bulyan_cluster.shape
+    # param_med = torch.median(bulyan_cluster, dim=0)[0]
+    # sort_idx = torch.argsort(torch.abs(bulyan_cluster - param_med), dim=0)
+    # sorted_params = bulyan_cluster[sort_idx, torch.arange(d)[None, :]]
 
-    return torch.mean(sorted_params[:n - 2 * n_attackers], dim=0), np.array(candidate_indices)
+    # return torch.mean(sorted_params[:n - 2 * n_attackers], dim=0), np.array(candidate_indices)
+    return None, np.array(candidate_indices)
 
 
 def mandera_detect(gradients):
@@ -199,7 +201,52 @@ def flatten_grads(gradients):
 
 if __name__ == "__main__":
     import pickle
-    grads_1 = pickle.load(open("sf_debug_grads.pickle", "rb"))
+    grads_1 = pickle.load(open("../sf_debug_grads.pickle", "rb"))
+
+    import time
+
+    def timeit_1arg(def_function, grad_1, number):
+        timings = []
+        for _ in range(number):
+            start_time = time.perf_counter()
+            def_function(grad_1)
+            end_time = time.perf_counter()
+            timings.append(end_time - start_time)
+        return timings
+
+    def timeit_2arg(def_function, grad_1, n_poi, number):
+        timings = []
+        for _ in range(number):
+            start_time = time.perf_counter()
+            def_function(grad_1, n_poi)
+            end_time = time.perf_counter()
+            timings.append(end_time - start_time)
+        return timings    
+
+    n_runs = 100
+
+    timing_dict = {}
+    
+    t = timeit_1arg(mandera_detect, grads_1, n_runs)
+    timing_dict['mandera'] = t
+
+    t = timeit_1arg(median, grads_1, n_runs)
+    timing_dict['median'] = t
+
+    t = timeit_2arg(tr_mean, grads_1, 30, n_runs)
+    timing_dict['tr_mean'] = t
+
+    t = timeit_2arg(multi_krum, grads_1, 30, n_runs)
+    timing_dict['multi_krum'] = t
+
+    t = timeit_2arg(bulyan, grads_1, 30, n_runs)
+    timing_dict['bulyan'] = t
+
+
+    print(timing_dict)
+
+    pickle.dump(timing_dict, open("timings_dict.pickle", "wb"))
+
 
     # Quick tests in ipython with %timeit
 
@@ -218,5 +265,5 @@ if __name__ == "__main__":
     # print(index)
 
     # # 805 ms ± 6.77 ms per loop (mean ± std. dev. of 7 runs, 1 loop each)
-    index = mandera_detect(grads_1)
-    print(index)
+    # index = mandera_detect(grads_1)
+    # print(index)
