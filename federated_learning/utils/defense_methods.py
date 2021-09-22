@@ -132,7 +132,8 @@ def mandera_detect(gradients):
         vars = gradients.rank(axis=0, method='average').var(axis=1)
     elif type(gradients) == list:
         flat_grad = flatten_grads(gradients)
-        vars = pd.DataFrame(flat_grad).rank(axis=0, method='average').var(axis=1)
+        gradients = pd.DataFrame(flat_grad)
+        vars = gradients.rank(axis=0, method='average').var(axis=1)
     else:
         print("Support not implemented for generic matrixes, please use a pandas dataframe, or a list to be cast into a dataframe")
         assert type(gradients) in [pd.DataFrame, list]
