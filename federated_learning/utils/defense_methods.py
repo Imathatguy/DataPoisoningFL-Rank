@@ -132,8 +132,7 @@ def mandera_detect(gradients):
         vars = gradients.rank(axis=0, method='average').var(axis=1)
     elif type(gradients) == list:
         flat_grad = flatten_grads(gradients)
-        gradients = pd.DataFrame(flat_grad)
-        vars = gradients.rank(axis=0, method='average').var(axis=1)
+        vars = pd.DataFrame(flat_grad).rank(axis=0, method='average').var(axis=1)
     else:
         print("Support not implemented for generic matrixes, please use a pandas dataframe, or a list to be cast into a dataframe")
         assert type(gradients) in [pd.DataFrame, list]
@@ -142,14 +141,14 @@ def mandera_detect(gradients):
     group = model.fit_predict(vars.values.reshape(-1,1))
     group = np.array(group)
 
-    # diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
-    # diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
+    diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
+    diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
 
     # diff_g0 = len(vars[group == 0]) - gradients[group == 0].nunique(axis=1)
     # diff_g1 = len(vars[group == 1]) - gradients[group == 1].nunique(axis=1)
 
-    diff_g0 = len(vars[group == 0]) - gradients[0][group == 1].nunique()
-    diff_g1 = len(vars[group == 1]) - gradients[0][group == 1].nunique()
+    # diff_g0 = len(vars[group == 0]) - gradients[0][group == 1].nunique()
+    # diff_g1 = len(vars[group == 1]) - gradients[0][group == 1].nunique()
    
     # if no group found with matching gradients, mark the smaller group as malicious
     if diff_g0 == diff_g1:

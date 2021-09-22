@@ -11,7 +11,7 @@ import os
 def mandera(gradients, poi_index):
     # gradients is a dataframe, poi_index is a lite-type object
     if type(gradients) == pd.DataFrame:
-        vars = gradients.rank(axis=0, method='first').var(axis=1)
+        vars = gradients.rank(axis=0, method='average').var(axis=1)
         n_nodes = gradients.shape[0]
     else:
         print("Support not implemented for generic matrixes, please use a pandas dataframe")
@@ -21,14 +21,14 @@ def mandera(gradients, poi_index):
     group = model.fit_predict(vars.values.reshape(-1,1))
     group = np.array(group)
 
-    # diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
-    # diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
+    diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
+    diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
 
     # diff_g0 = len(vars[group == 0]) - gradients[group == 0].nunique(axis=1)
     # diff_g1 = len(vars[group == 1]) - gradients[group == 1].nunique(axis=1)
 
-    diff_g0 = len(vars[group == 0]) - gradients[0][group == 1].nunique()
-    diff_g1 = len(vars[group == 1]) - gradients[0][group == 1].nunique()
+    # diff_g0 = len(vars[group == 0]) - gradients[0][group == 1].nunique()
+    # diff_g1 = len(vars[group == 1]) - gradients[0][group == 1].nunique()
 
     # if no group found with matching gradients, mark the smaller group as malicious
     if diff_g0 == diff_g1:
