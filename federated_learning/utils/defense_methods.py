@@ -139,21 +139,16 @@ def mandera_detect(gradients):
 
     model = KMeans(n_clusters=2)
     group = model.fit_predict(vars.values.reshape(-1,1))
-
-    # mark the group with the lower variance as malicious
-    #print(vars)
-    #print(len(group))
-    # vars['group'] = group
     group = np.array(group)
-    #print(flat_grad.shape)
-    #print(np.unique(flat_grad, axis=0).shape)
-    #print(flat_grad[85])
-    #print(flat_grad[95])
-    diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
-    diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
-    # print(diff_g0, diff_g1)
-    #print(np.var(vars[group == 1], axis=0))
-    #print(np.var(vars[group == 0], axis=0))
+
+    # diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
+    # diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
+
+    # diff_g0 = len(vars[group == 0]) - gradients[group == 0].nunique(axis=1)
+    # diff_g1 = len(vars[group == 1]) - gradients[group == 1].nunique(axis=1)
+
+    diff_g0 = len(vars[group == 0]) - gradients[0][group == 1].nunique()
+    diff_g1 = len(vars[group == 1]) - gradients[0][group == 1].nunique()
    
     # if no group found with matching gradients, mark the smaller group as malicious
     if diff_g0 == diff_g1:
@@ -169,8 +164,6 @@ def mandera_detect(gradients):
         bad_label = 0
     else:
         assert False
-        
-    # print(bad_label)
 
     # see which indexes match the minority label
     predict_poi = [n for n, l in enumerate(group) if l == bad_label]

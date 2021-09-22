@@ -1,7 +1,8 @@
 from sklearn.cluster import KMeans
-from statistics import mode
+from statistics import StatisticsError, mode
 from tqdm import tqdm
 import pandas as pd
+import numpy as np
 import zipfile
 import h5py
 import os
@@ -18,9 +19,32 @@ def mandera(gradients, poi_index):
 
     model = KMeans(n_clusters=2)
     group = model.fit_predict(vars.values.reshape(-1,1))
+    group = np.array(group)
 
-    # get the minority label
-    bad_label = (mode(group) + 1) % 2
+    # diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
+    # diff_g1 = len(vars[group == 1]) - vars[group == 1].nunique()
+
+    # diff_g0 = len(vars[group == 0]) - gradients[group == 0].nunique(axis=1)
+    # diff_g1 = len(vars[group == 1]) - gradients[group == 1].nunique(axis=1)
+
+    diff_g0 = len(vars[group == 0]) - gradients[0][group == 1].nunique()
+    diff_g1 = len(vars[group == 1]) - gradients[0][group == 1].nunique()
+
+    # if no group found with matching gradients, mark the smaller group as malicious
+    if diff_g0 == diff_g1:
+        # get the minority label
+        try:
+            bad_label = (mode(group) + 1) % 2
+        except StatisticsError:
+            # equally sized groups, select the first group to keep.
+            bad_label = 0
+    elif diff_g0 < diff_g1:
+        bad_label = 1
+    elif diff_g0 > diff_g1:
+        bad_label = 0
+    else:
+        assert False
+
     # see which indexes match the minority label
     predict_poi = [n for n, l in enumerate(group) if l == bad_label]
 
@@ -29,7 +53,7 @@ def mandera(gradients, poi_index):
     TP = len(detected)
     FP = P - TP
     FN = len(poi_index) - TP
-    TN = (n_nodes-P) - FP
+    TN = (n_nodes-len(poi_index)) - FP
 
     precision = TP/(TP+FP)
     recall = TP/(TP+FN)
@@ -48,13 +72,15 @@ if __name__ == "__main__":
     # path for 70000
     file_path = 'Z:/'
 
-    exp_series = 70000
+    exp_series = 80000
     n_runs = 20
     # n_poi_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     n_poi_list = [5, 10, 15, 20, 25, 30]
     max_epochs = 25
 
     bulk_metrics = {}
+
+    print(exp_series)
 
     for n_poi in tqdm(n_poi_list):
         exp_bulk = "{}XX_results.zip".format(str(exp_series + n_poi*100)[:3])
