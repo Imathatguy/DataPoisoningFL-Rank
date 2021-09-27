@@ -1,4 +1,5 @@
 from sklearn.cluster import KMeans
+from sklearn.preprocessing import StandardScaler
 from statistics import StatisticsError, mode
 import pandas as pd
 import numpy as np
@@ -129,16 +130,27 @@ def bulyan(gradients, n_attackers):
 def mandera_detect(gradients):
     # gradients is a dataframe, poi_index is a lite-type object
     if type(gradients) == pd.DataFrame:
-        vars = gradients.rank(axis=0, method='average').var(axis=1)
+        ranks = gradients.rank(axis=0, method='average')
+        vars = ranks.var(axis=1)
+        mus = ranks.mean(axis=1)
+        feats = pd.concat([mus, vars], axis=1)
+        assert feats.shape == (gradients.shape[0], 2)
     elif type(gradients) == list:
         flat_grad = flatten_grads(gradients)
-        vars = pd.DataFrame(flat_grad).rank(axis=0, method='average').var(axis=1)
+        ranks = pd.DataFrame(flat_grad).rank(axis=0, method='average')
+        vars = ranks.var(axis=1)
+        mus = ranks.mean(axis=1)
+        feats = pd.concat([mus, vars], axis=1)
+        assert feats.shape == (ranks.shape[0], 2)
     else:
         print("Support not implemented for generic matrixes, please use a pandas dataframe, or a list to be cast into a dataframe")
         assert type(gradients) in [pd.DataFrame, list]
 
+    scaler = StandardScaler()
+    feats = scaler.fit_transform(feats.values)
+
     model = KMeans(n_clusters=2)
-    group = model.fit_predict(vars.values.reshape(-1,1))
+    group = model.fit_predict(feats)
     group = np.array(group)
 
     diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
