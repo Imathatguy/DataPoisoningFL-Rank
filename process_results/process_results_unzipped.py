@@ -13,7 +13,7 @@ def mandera(gradients, poi_index):
     # gradients is a dataframe, poi_index is a lite-type object
     if type(gradients) == pd.DataFrame:
         ranks = gradients.rank(axis=0, method='average')
-        vars = ranks.var(axis=1)
+        vars = ranks.var(axis=1).pow(1./2)
         mus = ranks.mean(axis=1)
         feats = pd.concat([mus, vars], axis=1)
         assert feats.shape == (100, 2)
@@ -22,11 +22,11 @@ def mandera(gradients, poi_index):
         print("Support not implemented for generic matrixes, please use a pandas dataframe")
         assert type(gradients) == pd.DataFrame
 
-    scaler = StandardScaler()
-    feats = scaler.fit_transform(feats.values)
+    # scaler = StandardScaler()
+    # feats = scaler.fit_transform(feats.values)
 
     model = KMeans(n_clusters=2)
-    group = model.fit_predict(feats)
+    group = model.fit_predict(feats.values)
     assert len(group) == 100
 
     group = np.array(group)
@@ -84,7 +84,7 @@ if __name__ == "__main__":
     # path for 50000, 90000
     file_path = 'I:/DataPoisoning_FL/results/past'
 
-    exp_series = 50000
+    exp_series = 90000
     n_runs = 20
     # n_poi_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     n_poi_list = [5, 10, 15, 20, 25, 30]

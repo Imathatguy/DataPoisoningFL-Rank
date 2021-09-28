@@ -131,14 +131,14 @@ def mandera_detect(gradients):
     # gradients is a dataframe, poi_index is a lite-type object
     if type(gradients) == pd.DataFrame:
         ranks = gradients.rank(axis=0, method='average')
-        vars = ranks.var(axis=1)
+        vars = ranks.var(axis=1).pow(1./2)
         mus = ranks.mean(axis=1)
         feats = pd.concat([mus, vars], axis=1)
         assert feats.shape == (gradients.shape[0], 2)
     elif type(gradients) == list:
         flat_grad = flatten_grads(gradients)
         ranks = pd.DataFrame(flat_grad).rank(axis=0, method='average')
-        vars = ranks.var(axis=1)
+        vars = ranks.var(axis=1).pow(1./2)
         mus = ranks.mean(axis=1)
         feats = pd.concat([mus, vars], axis=1)
         assert feats.shape == (ranks.shape[0], 2)
@@ -146,11 +146,11 @@ def mandera_detect(gradients):
         print("Support not implemented for generic matrixes, please use a pandas dataframe, or a list to be cast into a dataframe")
         assert type(gradients) in [pd.DataFrame, list]
 
-    scaler = StandardScaler()
-    feats = scaler.fit_transform(feats.values)
+    # scaler = StandardScaler()
+    # feats = scaler.fit_transform(feats.values)
 
     model = KMeans(n_clusters=2)
-    group = model.fit_predict(feats)
+    group = model.fit_predict(feats.values)
     group = np.array(group)
 
     diff_g0 = len(vars[group == 0]) - vars[group == 0].nunique()
