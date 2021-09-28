@@ -1,6 +1,8 @@
-# Data Poisoning Attacks Against Federated Learning Systems
+# MANDERA: Malicious Node Detection in Federated Learning via Ranking
 
-Code for the ESORICS 2020 paper: Data Poisoning Attacks Against Federated Learning Systems
+Code for a ICLR 2021 submission, "MANDERA: Malicious Node Detection in Federated Learning via Ranking"
+
+The code in this repositor has been adapted from code originally from the ESORICS 2020 paper: Data Poisoning Attacks Against Federated Learning Systems
 
 ## Installation
 
@@ -25,25 +27,41 @@ Some pointers & general information:
 - Most hyperparameters can be set in the ```federated_learning/arguments.py``` file
 - Most specific experiment settings are located in the respective experiment files (see the following sections)
 
-### Experiments - Label Flipping Attack Feasibility
+### Experiments - Malicious Node detection by MANDERA
 
-Running an attack: ```python3 label_flipping_attack.py```
+Running an attack: 
+```
+cd process_results
+python3 process_results.py
+```
+or
+```
+python3 process_results_unzipped.py
+```
+Depending on the state of the gradients saved from the experiments below:
+Note that gradient saving requires a substantial amount of disk space as has been supressed by default.
 
-### Experiments - Attack Timing in Label Flipping Attacks
 
-Running an attack: ```python3 attack_timing.py```
+### Experiments - MANDERA for defending against poisoning attacks
+To run the full set of experiments for each of the 4 attacks and defenses
+See the respective bash script `label_flipping_batch.sh`, `guassian_attack.sh`, `zero_gradient_attack.sh`, `sign_flipping_batch.sh`
 
-### Experiments - Malicious Participant Availability
+The batch experiments were run on a HPC enironment with a slurm scheduller.
 
-Running an attack: ```python3 malicious_participant_availability.py```
+Running an attack: ```bash label_flipping.batch.sh```
 
-### Experiments - Defending Against Label Flipping Attacks
 
-Running the defense: ```python3 defense.py```
+### Experiments - Computational Efficiency
+
+Running a timing test:
+```
+cd timing_test
+slurm timing.jobscript
+```
 
 ### Experiment Hyperparameters
 
-Recommended default hyperparameters for CIFAR10 (using the provided CNN):
+Recommended default hyperparameters:
 - Batch size: 10
 - LR: 0.01
 - Number of epochs: 200
@@ -51,35 +69,3 @@ Recommended default hyperparameters for CIFAR10 (using the provided CNN):
 - Scheduler step size: 50
 - Scheduler gamma: 0.5
 - Min_lr: 1e-10
-
-Recommended default hyperparameters for Fashion-MNIST (using the provided CNN):
-- Batch size: 4
-- LR: 0.001
-- Number of epochs: 200
-- Momentum: 0.9
-- Scheduler step size: 10
-- Scheduler gamma: 0.1
-- Min_lr: 1e-10
-
-## Citing
-
-If you use this code, please cite the paper:
-
-```
-@ARTICLE{2020arXiv200708432T,
-       author = {{Tolpegin}, Vale and {Truex}, Stacey and {Emre Gursoy}, Mehmet and
-         {Liu}, Ling},
-        title = "{Data Poisoning Attacks Against Federated Learning Systems}",
-      journal = {arXiv e-prints},
-     keywords = {Computer Science - Machine Learning, Computer Science - Cryptography and Security, Statistics - Machine Learning},
-         year = 2020,
-        month = jul,
-          eid = {arXiv:2007.08432},
-        pages = {arXiv:2007.08432},
-archivePrefix = {arXiv},
-       eprint = {2007.08432},
- primaryClass = {cs.LG},
-       adsurl = {https://ui.adsabs.harvard.edu/abs/2020arXiv200708432T},
-      adsnote = {Provided by the SAO/NASA Astrophysics Data System}
-}
-```
