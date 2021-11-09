@@ -10,6 +10,7 @@ from federated_learning.utils.defense_methods import multi_krum
 from federated_learning.utils.defense_methods import bulyan
 from federated_learning.utils.defense_methods import median
 from federated_learning.utils.defense_methods import tr_mean
+from federated_learning.utils.defense_methods import fltrust
 from federated_learning.worker_selection import RandomSelectionStrategy
 from server import run_exp
 import argparse
@@ -53,8 +54,11 @@ if __name__ == '__main__':
     elif args.def_method == "tr_mean":
         START_EXP_IDX = 500000
         DEF_METHOD = tr_mean
+    elif args.def_method == "fltrust":
+        START_EXP_IDX = 600000
+        DEF_METHOD = fltrust
     else:
-        assert args.def_method in ["None", "mandera_detect", "multi_krum", "bulyan", "median", "tr_mean"]
+        assert args.def_method in ["None", "mandera_detect", "multi_krum", "bulyan", "median", "tr_mean", "fltrust"]
 
     # Using 10000 for baseline
     # the 2-3 digits (X20XX) specifying num of poisioning workers
@@ -93,8 +97,12 @@ if __name__ == '__main__':
         START_EXP_IDX = 400000
     elif DEF_METHOD == tr_mean:
         START_EXP_IDX = 500000
+    elif DEF_METHOD == fltrust:
+        START_EXP_IDX = 600000
+        # Add extra worker as trusted server model
+        KWARGS["NUM_WORKERS_PER_ROUND"] = KWARGS["NUM_WORKERS_PER_ROUND"] + 1
     else:
-        assert DEF_METHOD in [None, mandera_detect, multi_krum, bulyan, median, tr_mean]
+        assert DEF_METHOD in [None, mandera_detect, multi_krum, bulyan, median, tr_mean, fltrust]
 
     if DATASET == "FASHION":
         START_EXP_IDX = START_EXP_IDX + 20000

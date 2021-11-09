@@ -50,7 +50,7 @@ if __name__ == '__main__':
         START_EXP_IDX = 500000
         DEF_METHOD = tr_mean
     elif args.def_method == "fltrust":
-        START_EXP_IDX = 1100000
+        START_EXP_IDX = 600000
         DEF_METHOD = fltrust
     else:
         assert args.def_method in ["None", "mandera_detect", "multi_krum", "bulyan", "median", "tr_mean", "fltrust"]
@@ -93,7 +93,7 @@ if __name__ == '__main__':
     elif DEF_METHOD == tr_mean:
         START_EXP_IDX = 500000
     elif DEF_METHOD == fltrust:
-        START_EXP_IDX = 1100000
+        START_EXP_IDX = 600000
         # Add extra worker as trusted server model
         KWARGS["NUM_WORKERS_PER_ROUND"] = KWARGS["NUM_WORKERS_PER_ROUND"] + 1
     else:
