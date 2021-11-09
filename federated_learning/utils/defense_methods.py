@@ -183,6 +183,40 @@ def mandera_detect(gradients):
     return predict_poi
 
 
+def fltrust(gradients):
+    """
+    gradients: list of gradients. The last one is the trusted server bootstrap update.
+    """
+
+    grads = flatten_grads(gradients)
+    n = len(gradients) - 1
+    
+    # use the last gradient (server update) as the trusted source
+    baseline = grads[-1]
+    cos_sim = []
+    new_param_list = []
+    
+    # compute cos similarity
+    for each_param_list in grads[:-1]:
+        each_param_array = np.array(each_param_list).squeeze()
+        cos_sim.append(np.dot(baseline, each_param_array) / (np.linalg.norm(baseline) + 1e-9) / (np.linalg.norm(each_param_array) + 1e-9))
+        
+    cos_sim = np.stack(cos_sim)
+    cos_sim = np.maximum(cos_sim, 0) # relu
+    normalized_weights = cos_sim / (np.sum(cos_sim) + 1e-9) # weighted trust score
+
+    # normalize the magnitudes and weight by the trust score
+    for i in range(n):
+        new_param_list.append(grads[i] * normalized_weights[i] / (np.linalg.norm(grads[i]) + 1e-9) * np.linalg.norm(baseline))
+    
+    # update the global model
+    global_update = np.sum(new_param_list, axis=0) / n
+    assert global_update.shape == grads[-1].shape
+  
+    return global_update
+
+
+
 def flatten_grads(gradients):
 
     param_order = gradients[0].keys()

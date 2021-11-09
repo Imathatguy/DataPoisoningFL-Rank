@@ -5,6 +5,7 @@ from federated_learning.utils.defense_methods import multi_krum
 from federated_learning.utils.defense_methods import bulyan
 from federated_learning.utils.defense_methods import median
 from federated_learning.utils.defense_methods import tr_mean
+from federated_learning.utils.defense_methods import fltrust
 from numpy.lib.npyio import save
 from loguru import logger
 from federated_learning.arguments import Arguments
@@ -75,35 +76,6 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
     # detection defense occurs just before parameter aggregation
     if def_method in [mandera_detect]:
         bad_indexes = mandera_detect(gradients)
-        # # compute metrics and save
-        # def compute_detect_metrics(bad_ind, poi_ind, n_nodes):
-        #     detected = set(poi_ind).intersection(set(bad_ind))
-        #     P = len(bad_ind)
-        #     TP = len(detected)
-        #     FP = P - TP
-        #     FN = len(bad_ind) - TP
-        #     TN = (n_nodes-P) - FP
-
-        #     precision = TP/(TP+FP)
-        #     recall = TP/(TP+FN)
-        #     accuracy =(TP+TN)/(TP+TN+FP+FN)
-        #     if (precision + recall) == 0:
-        #         f1 = 0
-        #     else:
-        #         f1 = (2 * precision * recall) / (precision + recall)
-
-        #     return [accuracy, precision, recall, f1]
-        # metrics = compute_detect_metrics(bad_indexes, poisoned_workers, len(parameters))
-        # if epoch == 1:
-        #     _df = pd.DataFrame(metrics).transpose()
-        #     _df.columns = ["accuracy", "precision", "recall", "f1"]
-        #     _df.to_csv("test.csv", mode='w', index=False, header=True)
-        #     #with open("test.txt", "wb") as f:
-        #     #    np.savetxt(f, np.array(metrics).transpose(), delimiter=',', fmt='%10.5f')
-        # else:
-        #     pd.DataFrame(metrics).transpose().to_csv("test.csv", mode='a', index=False, header=False)
-        #     #with open("test.txt", "ab") as f:
-        #     #    np.savetxt(f, np.array(metrics).transpose(), delimiter=',', fmt='%10.5f')
         good_parameters = [param for n, param in enumerate(parameters) if n not in bad_indexes]
         new_nn_params = average_nn_parameters(good_parameters)
     elif def_method in [multi_krum]:
@@ -118,6 +90,9 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
         new_nn_params = median(parameters)
     elif def_method in [tr_mean]:
         new_nn_params = tr_mean(parameters, len(poisoned_workers))
+    elif def_method in [fltrust]:
+        new_nn_grads = fltrust(gradients)
+        new_nn_params = add_grads(existing_parameters[-1], unflatten_grads(new_nn_grads, existing_parameters[-1]))
     else:
         new_nn_params = average_nn_parameters(parameters)
 
@@ -182,11 +157,17 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     train_data_loader = load_train_data_loader(logger, args)
     test_data_loader = load_test_data_loader(logger, args)
 
+    if def_method == fltrust:
+        # Guarantee that the last worker is not poisoned, represents trusted server model
+        args.set_num_workers(args.get_num_workers() + 1)
+        poisoned_workers = identify_random_elements(args.get_num_workers() - 1, args.get_num_poisoned_workers())
+    else:
+        poisoned_workers = identify_random_elements(args.get_num_workers(), args.get_num_poisoned_workers())
+    
     # Distribute batches equal volume IID
     distributed_train_dataset = distribute_batches_equally(train_data_loader, args.get_num_workers())
     distributed_train_dataset = convert_distributed_data_into_numpy(distributed_train_dataset)
 
-    poisoned_workers = identify_random_elements(args.get_num_workers(), args.get_num_poisoned_workers())
     distributed_train_dataset = poison_data(logger, distributed_train_dataset, args.get_num_workers(), poisoned_workers, replacement_method)
 
     train_data_loaders = generate_data_loaders_from_distributed_dataset(distributed_train_dataset, args.get_batch_size())
@@ -263,3 +244,69 @@ def flatten_params(epoch_holder):
         flat_epochs.append(arr_2d)
     return flat_epochs
         
+
+def unflatten_grads(flat_param, param_example):
+
+    new_params = copy.deepcopy(param_example)
+    param_order = new_params.keys()
+
+    i = 0
+    for param in param_order:
+        n_flat = len(new_params[param].flatten())
+        new_params[param] = torch.tensor(flat_param[i:i+n_flat].reshape(new_params[param].shape)).to(device='cuda')
+        i = i + n_flat
+    return new_params
+        
+
+def flatten_grads(gradients):
+
+    param_order = gradients[0].keys()
+
+    flat_epochs = []
+
+    for n_user in range(len(gradients)):
+        user_arr = []
+        grads = gradients[n_user]
+        for param in param_order:
+            try:
+                user_arr.extend(grads[param].cpu().numpy().flatten().tolist())
+            except:
+                user_arr.extend([grads[param].cpu().numpy().flatten().tolist()])
+        flat_epochs.append(user_arr)
+
+    flat_epochs = np.array(flat_epochs)
+
+    return flat_epochs
+
+
+def add_grads(full_param, grads):
+    assert full_param.keys() == grads.keys()
+    new_params = copy.deepcopy(full_param)
+    param_order = full_param.keys()
+
+    for param in param_order:
+        new_params[param] = full_param[param] + grads[param]
+
+    return new_params
+
+
+# if __name__ == "__main__":
+
+#     import pickle
+#     grads_1 = pickle.load(open("sf_debug_grads.pickle", "rb"))
+
+#     # flat_grads = flatten_params([{n: grad for n, grad in enumerate(grads_1)}])
+#     flat_grads = flatten_grads(grads_1)
+
+#     unflat_grads = unflatten_grads(flat_grads[0], grads_1[0])
+
+#     assert unflat_grads.keys() == grads_1[0].keys()
+
+#     for name in unflat_grads.keys():
+#         assert torch.all(unflat_grads[name].eq(grads_1[0][name]))
+
+
+#     double_grad = add_grads(unflat_grads, unflat_grads)
+
+#     for name in double_grad.keys():
+#         assert torch.all(double_grad[name].eq(grads_1[0][name]*2))
