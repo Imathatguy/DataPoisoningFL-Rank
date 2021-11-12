@@ -198,28 +198,17 @@ def fltrust(gradients):
     
     # compute cos similarity
     for each_param_list in grads[:-1]:
-        # print(each_param_list.shape)
         each_param_array = np.array(each_param_list).squeeze()
-        # print(each_param_array.shape)
         _cos = np.dot(baseline, each_param_array) / (np.linalg.norm(baseline) + 1e-9) / (np.linalg.norm(each_param_array) + 1e-9)
-        # print(baseline)
-        # print(each_param_array)
-        # print(_cos)
         cos_sim.append(_cos)
         
     cos_sim = np.stack(cos_sim)
-    # print(cos_sim.shape)
     cos_sim = np.maximum(cos_sim, 0) # relu
-    # print(cos_sim.shape)
     normalized_weights = cos_sim / (np.sum(cos_sim) + 1e-9) # weighted trust score
-    # print(normalized_weights.shape)
-    # print(normalized_weights)
 
     # normalize the magnitudes and weight by the trust score
     for i in range(n):
         new_param_list.append(grads[i] * normalized_weights[i] / (np.linalg.norm(grads[i]) + 1e-9) * np.linalg.norm(baseline))
-    
-    # print(len(new_param_list.shape))
 
     # update the global model
     global_update = np.sum(new_param_list, axis=0)
