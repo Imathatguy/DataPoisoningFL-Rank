@@ -73,6 +73,11 @@ if __name__ == '__main__':
     # 70000 for gaussian noise
     # 80000 for zero grad
     # 90000 for sign flip
+    # MNIST
+    # 10020000 for label flipping
+    # 10030000 for gaussian noise
+    # 10040000 for zero grad
+    # 10050000 for sign flip
     # Add 100000 for full defense method.
     # START_EXP_IDX = 390000
 
@@ -108,13 +113,10 @@ if __name__ == '__main__':
         START_EXP_IDX = START_EXP_IDX + 20000
     elif DATASET == "CIFAR10":
         START_EXP_IDX = START_EXP_IDX + 60000
+    elif DATASET == "MNIST":
+        START_EXP_IDX = START_EXP_IDX + 10020000
     else:
-        assert DATASET in ["FASHION", "CIFAR10"]
-
-    # for NUM_POISONED_WORKERS in [5, 10, 15, 20, 25, 30]:
-    # for NUM_POISONED_WORKERS in [5, 10, 15]:
-    # for NUM_POISONED_WORKERS in [20, 25, 30]:
-    # for NUM_POISONED_WORKERS in [10,20,30]:
+        assert DATASET in ["FASHION", "CIFAR10", "MNIST"]
 
     START_EXP_IDX = START_EXP_IDX + (NUM_POISONED_WORKERS * 100)
 
