@@ -182,7 +182,7 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     end_time = time.perf_counter()
     
     exp_id = worker_selections_files[0].split("_")[0]
-    path = "results/{}".format(exp_id)
+    path = "/scratch2/zha197/results/{}".format(exp_id)
 
     try:
         print("./{}".format(path))
