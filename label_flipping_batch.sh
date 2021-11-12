@@ -7,7 +7,7 @@
 
 for D in 'MNIST'
 do
-    for M in 'None'
+    for M in 'mandera_detect' 'multi_krum' 'bulyan' 'median' 'tr_mean'
     do
         for R in 0 1 2 3 4 5 6 7 8 9
         do 
