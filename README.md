@@ -12,7 +12,7 @@ The code in this repository has been adapted from code originally from the ESORI
 
 ## Instructions for execution
 
-Using this repository, you can replicate all results presented at ESORICS. We outline the steps required to execute different experiments below.
+Using this repository, you can replicate all results presented. We outline the steps required to execute different experiments below.
 
 ### Setup
 
@@ -39,14 +39,14 @@ or
 python3 process_results_unzipped.py
 ```
 Depending on the state of the gradients saved from the experiments below:
-Note that gradient saving requires a substantial amount of disk space as has been supressed by default.
+Note that gradient saving requires a substantial amount of disk space as has been suppressed by default.
 
 
 ### Experiments - MANDERA for defending against poisoning attacks
 To run the full set of experiments for each of the 4 attacks and defenses
-See the respective bash script `label_flipping_batch.sh`, `guassian_attack.sh`, `zero_gradient_attack.sh`, `sign_flipping_batch.sh`
+See the respective bash script `label_flipping_batch.sh`, `guassian_attack.sh`, `zero_gradient_attack.sh`, `sign_flipping_batch.sh`, '
 
-The batch experiments were run on a HPC enironment with a slurm scheduller.
+The batch experiments were run on a HPC environment with a slurm scheduler.
 
 Running an attack: ```bash label_flipping.batch.sh```
 
