@@ -198,19 +198,31 @@ def fltrust(gradients):
     
     # compute cos similarity
     for each_param_list in grads[:-1]:
+        # print(each_param_list.shape)
         each_param_array = np.array(each_param_list).squeeze()
-        cos_sim.append(np.dot(baseline, each_param_array) / (np.linalg.norm(baseline) + 1e-9) / (np.linalg.norm(each_param_array) + 1e-9))
+        # print(each_param_array.shape)
+        _cos = np.dot(baseline, each_param_array) / (np.linalg.norm(baseline) + 1e-9) / (np.linalg.norm(each_param_array) + 1e-9)
+        # print(baseline)
+        # print(each_param_array)
+        # print(_cos)
+        cos_sim.append(_cos)
         
     cos_sim = np.stack(cos_sim)
+    # print(cos_sim.shape)
     cos_sim = np.maximum(cos_sim, 0) # relu
+    # print(cos_sim.shape)
     normalized_weights = cos_sim / (np.sum(cos_sim) + 1e-9) # weighted trust score
+    # print(normalized_weights.shape)
+    # print(normalized_weights)
 
     # normalize the magnitudes and weight by the trust score
     for i in range(n):
         new_param_list.append(grads[i] * normalized_weights[i] / (np.linalg.norm(grads[i]) + 1e-9) * np.linalg.norm(baseline))
     
+    # print(len(new_param_list.shape))
+
     # update the global model
-    global_update = np.sum(new_param_list, axis=0) / n
+    global_update = np.sum(new_param_list, axis=0)
     assert global_update.shape == grads[-1].shape
   
     return global_update
@@ -242,49 +254,51 @@ if __name__ == "__main__":
     import pickle
     grads_1 = pickle.load(open("../sf_debug_grads.pickle", "rb"))
 
-    import time
+    a = fltrust(grads_1)
 
-    def timeit_1arg(def_function, grad_1, number):
-        timings = []
-        for _ in range(number):
-            start_time = time.perf_counter()
-            def_function(grad_1)
-            end_time = time.perf_counter()
-            timings.append(end_time - start_time)
-        return timings
+    # import time
 
-    def timeit_2arg(def_function, grad_1, n_poi, number):
-        timings = []
-        for _ in range(number):
-            start_time = time.perf_counter()
-            def_function(grad_1, n_poi)
-            end_time = time.perf_counter()
-            timings.append(end_time - start_time)
-        return timings    
+    # def timeit_1arg(def_function, grad_1, number):
+    #     timings = []
+    #     for _ in range(number):
+    #         start_time = time.perf_counter()
+    #         def_function(grad_1)
+    #         end_time = time.perf_counter()
+    #         timings.append(end_time - start_time)
+    #     return timings
 
-    n_runs = 100
+    # def timeit_2arg(def_function, grad_1, n_poi, number):
+    #     timings = []
+    #     for _ in range(number):
+    #         start_time = time.perf_counter()
+    #         def_function(grad_1, n_poi)
+    #         end_time = time.perf_counter()
+    #         timings.append(end_time - start_time)
+    #     return timings    
 
-    timing_dict = {}
+    # n_runs = 100
+
+    # timing_dict = {}
     
-    t = timeit_1arg(mandera_detect, grads_1, n_runs)
-    timing_dict['mandera'] = t
+    # t = timeit_1arg(mandera_detect, grads_1, n_runs)
+    # timing_dict['mandera'] = t
 
-    t = timeit_1arg(median, grads_1, n_runs)
-    timing_dict['median'] = t
+    # t = timeit_1arg(median, grads_1, n_runs)
+    # timing_dict['median'] = t
 
-    t = timeit_2arg(tr_mean, grads_1, 30, n_runs)
-    timing_dict['tr_mean'] = t
+    # t = timeit_2arg(tr_mean, grads_1, 30, n_runs)
+    # timing_dict['tr_mean'] = t
 
-    t = timeit_2arg(multi_krum, grads_1, 30, n_runs)
-    timing_dict['multi_krum'] = t
+    # t = timeit_2arg(multi_krum, grads_1, 30, n_runs)
+    # timing_dict['multi_krum'] = t
 
-    t = timeit_2arg(bulyan, grads_1, 30, n_runs)
-    timing_dict['bulyan'] = t
+    # t = timeit_2arg(bulyan, grads_1, 30, n_runs)
+    # timing_dict['bulyan'] = t
 
 
-    print(timing_dict)
+    # print(timing_dict)
 
-    pickle.dump(timing_dict, open("timings_dict.pickle", "wb"))
+    # pickle.dump(timing_dict, open("timings_dict.pickle", "wb"))
 
 
     # Quick tests in ipython with %timeit
