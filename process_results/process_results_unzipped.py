@@ -83,9 +83,11 @@ if __name__ == "__main__":
     # file_path = 'Z:/'
     # path for 50000, 90000
     file_path = 'I:/DataPoisoning_FL/results/past'
+    # path for 10020000, 10030000, 10040000, 10050000
+    file_path = '/scratch2/zha197/results'
 
     exp_series = 90000
-    n_runs = 20
+    n_runs = 10
     # n_poi_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     n_poi_list = [5, 10, 15, 20, 25, 30]
     max_epochs = 25
