@@ -243,31 +243,31 @@ if __name__ == "__main__":
     import pickle
     grads_1 = pickle.load(open("../sf_debug_grads.pickle", "rb"))
 
-    a = fltrust(grads_1)
+    # a = fltrust(grads_1)
 
-    # import time
+    import time
 
-    # def timeit_1arg(def_function, grad_1, number):
-    #     timings = []
-    #     for _ in range(number):
-    #         start_time = time.perf_counter()
-    #         def_function(grad_1)
-    #         end_time = time.perf_counter()
-    #         timings.append(end_time - start_time)
-    #     return timings
+    def timeit_1arg(def_function, grad_1, number):
+        timings = []
+        for _ in range(number):
+            start_time = time.perf_counter()
+            def_function(grad_1)
+            end_time = time.perf_counter()
+            timings.append(end_time - start_time)
+        return timings
 
-    # def timeit_2arg(def_function, grad_1, n_poi, number):
-    #     timings = []
-    #     for _ in range(number):
-    #         start_time = time.perf_counter()
-    #         def_function(grad_1, n_poi)
-    #         end_time = time.perf_counter()
-    #         timings.append(end_time - start_time)
-    #     return timings    
+    def timeit_2arg(def_function, grad_1, n_poi, number):
+        timings = []
+        for _ in range(number):
+            start_time = time.perf_counter()
+            def_function(grad_1, n_poi)
+            end_time = time.perf_counter()
+            timings.append(end_time - start_time)
+        return timings    
 
-    # n_runs = 100
+    n_runs = 100
 
-    # timing_dict = {}
+    timing_dict = {}
     
     # t = timeit_1arg(mandera_detect, grads_1, n_runs)
     # timing_dict['mandera'] = t
@@ -284,10 +284,12 @@ if __name__ == "__main__":
     # t = timeit_2arg(bulyan, grads_1, 30, n_runs)
     # timing_dict['bulyan'] = t
 
+    t = timeit_1arg(fltrust, grads_1, n_runs)
+    timing_dict['fltrust'] = t
 
-    # print(timing_dict)
+    print(timing_dict)
 
-    # pickle.dump(timing_dict, open("timings_dict.pickle", "wb"))
+    pickle.dump(timing_dict, open("timings_dict_fltrust.pickle", "wb"))
 
 
     # Quick tests in ipython with %timeit
