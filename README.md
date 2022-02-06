@@ -1,6 +1,8 @@
 # MANDERA: Malicious Node Detection in Federated Learning via Ranking
 
-Code for a ICML 2022 submission, "MANDERA: Malicious Node Detection in Federated Learning via Ranking"
+Code for "MANDERA: Malicious Node Detection in Federated Learning via Ranking"
+
+See the preprint: https://arxiv.org/abs/2110.11736
 
 The code in this repository has been adapted from code originally from the ESORICS 2020 paper: Data Poisoning Attacks Against Federated Learning Systems
 
