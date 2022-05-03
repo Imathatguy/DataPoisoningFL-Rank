@@ -1,5 +1,6 @@
 from federated_learning.utils.noise_injection_methods import gaussian_attack
 from federated_learning.utils.noise_injection_methods import zero_gradient
+from federated_learning.utils.noise_injection_methods import shifted_mean
 from federated_learning.utils.defense_methods import mandera_detect
 from federated_learning.utils.defense_methods import multi_krum
 from federated_learning.utils.defense_methods import bulyan
@@ -58,7 +59,7 @@ def train_subset_of_clients(epoch, args, clients, poisoned_workers, noise_method
 
     for client_idx in random_workers:
         # skip update of poisoned models as we overwrite gradients:
-        if noise_method in [gaussian_attack, zero_gradient]:
+        if noise_method in [gaussian_attack, zero_gradient, shifted_mean]:
             if client_idx in poisoned_workers:
                 args.get_logger().info("Skip  Training #{} on client #{}", str(epoch), str(clients[client_idx].get_client_index()))
                 continue

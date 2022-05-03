@@ -1,5 +1,7 @@
 import torch
 import copy
+from statistics import NormalDist, stdev
+from math import floor
 
 
 def no_noise(existing_parameters, parameters, random_workers, poisoned_workers):
@@ -53,6 +55,64 @@ def gaussian_attack(existing_parameters, parameters, random_workers, poisoned_wo
             # add gaussian noise to mean gradient with mean=mu, variance=30
             noise_grad = torch.randn(mu_grad[name].shape, device=mu_grad[name].device)
             gradients[n][name].add_(30, noise_grad)
+            # compute final parameters for poisoned client
+            parameters[n][name] = existing_parameters[n][name].add(1, gradients[n][name])
+
+    return parameters, gradients
+
+
+def shifted_mean(existing_parameters, parameters, random_workers, poisoned_workers):
+    """
+    :param parameters: List of parameters
+    :type parameters: list
+    :param random_workers: indices of randomized workers
+    :type random_workers: list(int)
+    :param poisoned_workers: indices of poisoned workers
+    :type poisoned_workers: list(int)
+    :return: new class IDs
+    """
+    ### Compute attack parameters given knowledge of # Poisoned + # Benign
+
+    # I note that exact z values can be calculated with `z_max = NormalDist().inv_cdf()` or from the z-table
+    # Algorithm 3 in `A Little Is Enough: Circumventing Defenses For Distributed Learning`
+    
+
+    # z values are pre-computed $max_z$[ $\phi(z)$ < (n−m−s) / (n−m) ]
+    _n = len(random_workers)
+    _m = len(poisoned_idx = [n for n, client_idx in enumerate(random_workers) if client_idx in poisoned_workers])
+    _s = floor(_n/2 + 1) - _m
+    _phi = 1.0*(_n - _m - _s) / (_n - _m)
+    assert _n > _m, "More malicious workers than total workers in round"
+    z_max = NormalDist().inv_cdf(_phi)
+
+    ### compute gradients for all clients
+    b = zip(*[existing_parameters, parameters])
+    # copy tensor structure to replace values
+    gradients = copy.deepcopy(parameters)
+    # replace params with grads in structure
+    for n, client_params in enumerate(b):
+        assert client_params[0].keys() == client_params[1].keys()
+        for name in client_params[0].keys():
+            gradients[n][name] = client_params[1][name] - client_params[0][name]
+
+    ### compute mean of non-poisoned client gradients
+    # copy tensor structure to replace values
+    mu_grad = copy.deepcopy(gradients[0])
+    sd_grad = copy.deepcopy(gradients[0])
+    benign_workers = [n for n, client_idx in enumerate(random_workers) if client_idx not in poisoned_workers]
+    for name in mu_grad.keys():
+        name_grads = [gradients[n][name].data for n in benign_workers]
+        mu_grad[name] = sum(name_grads) / len(benign_workers)
+        sd_grad[name] = stdev(name_grads)
+
+    ### modify poisoned gradients
+    poisoned_idx = [n for n, client_idx in enumerate(random_workers) if client_idx in poisoned_workers]
+    for n in poisoned_idx:
+        for name in parameters[n].keys():
+            # copy mu to poisoned user
+            gradients[n][name] = copy.deepcopy(mu_grad[name])
+            # subtract sd_grad scaled by z_max
+            gradients[n][name].sub_(z_max, sd_grad[name])
             # compute final parameters for poisoned client
             parameters[n][name] = existing_parameters[n][name].add(1, gradients[n][name])
 
