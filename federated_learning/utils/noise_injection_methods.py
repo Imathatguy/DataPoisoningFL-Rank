@@ -79,7 +79,7 @@ def shifted_mean(existing_parameters, parameters, random_workers, poisoned_worke
 
     # z values are pre-computed $max_z$[ $\phi(z)$ < (n−m−s) / (n−m) ]
     _n = len(random_workers)
-    _m = len(poisoned_idx = [n for n, client_idx in enumerate(random_workers) if client_idx in poisoned_workers])
+    _m = len([n for n, client_idx in enumerate(random_workers) if client_idx in poisoned_workers])
     _s = floor(_n/2 + 1) - _m
     _phi = 1.0*(_n - _m - _s) / (_n - _m)
     assert _n > _m, "More malicious workers than total workers in round"
@@ -103,7 +103,10 @@ def shifted_mean(existing_parameters, parameters, random_workers, poisoned_worke
     for name in mu_grad.keys():
         name_grads = [gradients[n][name].data for n in benign_workers]
         mu_grad[name] = sum(name_grads) / len(benign_workers)
-        sd_grad[name] = stdev(name_grads)
+        sd_grad[name] = torch.std(torch.stack(name_grads, dim=0).float(), dim=0, unbiased=False)
+
+        assert name_grads[0].shape == sd_grad[name].shape
+        assert name_grads[0].shape == mu_grad[name].shape
 
     ### modify poisoned gradients
     poisoned_idx = [n for n, client_idx in enumerate(random_workers) if client_idx in poisoned_workers]

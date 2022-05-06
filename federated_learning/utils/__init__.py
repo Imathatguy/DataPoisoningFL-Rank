@@ -1,5 +1,6 @@
 from .class_flipping_methods import *
 from .noise_injection_methods import gaussian_attack
+from .noise_injection_methods import shifted_mean
 from .noise_injection_methods import zero_gradient
 from .noise_injection_methods import sign_flipping
 from .noise_injection_methods import no_noise
