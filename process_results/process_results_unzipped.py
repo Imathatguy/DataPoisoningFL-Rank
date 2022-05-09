@@ -77,16 +77,41 @@ def mandera(gradients, poi_index):
 
 
 if __name__ == "__main__":
+
+    # Using 10000 for baseline
+    # the 2-3 digits (X20XX) specifying num of poisioning workers
+    # the 4-5 digits (XXX00) specifying run number
+    # FASHION
+    #     20000 for label flipping
+    #     30000 for gaussian noise
+    #     40000 for zero grad
+    #     50000 for sign flip
+    # 100020000 for shifted mean
+    # CIFAR
+    #     60000 for label flipping
+    #     70000 for gaussian noise
+    #     80000 for zero grad
+    #     90000 for sign flip
+    # 100060000 for shifted mean
+    # MNIST
+    #   10020000 for label flipping
+    #   10030000 for gaussian noise
+    #   10040000 for zero grad
+    #   10050000 for sign flip
+    #  110020000 for shifted mean
+    # Add 100000 for full defense method.
+
     # path for 60000, 80000
     # file_path = 'G:/active_projects/RankPoisonFL/'
     # path for 70000
     # file_path = 'Z:/'
     # path for 50000, 90000
-    file_path = 'I:/DataPoisoning_FL/results/past'
+    # file_path = 'I:/DataPoisoning_FL/results/past'
     # path for 10020000, 10030000, 10040000, 10050000
-    file_path = '/scratch2/zha197/results'
+    # file_path = '/scratch2/zha197/results'
+    file_path = os.path.join( "F:", os.sep, "mandera_results", "results_def", "no-defense")
 
-    exp_series = 10050000
+    exp_series = 110020000
     n_runs = 10
     # n_poi_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     n_poi_list = [5, 10, 15, 20, 25, 30]
@@ -98,8 +123,8 @@ if __name__ == "__main__":
 
     for n_poi in tqdm(n_poi_list):
 
-        exp_bulk = "{}XX_results.zip".format(str(exp_series + n_poi*100)[:3])
-        print(exp_bulk)
+        # exp_bulk = "{}XX_results.zip".format(str(exp_series + n_poi*100)[:3])
+        # print(exp_bulk)
 
         for n_run in tqdm(range(n_runs)):
             exp_code = exp_series + n_poi*100 + n_run

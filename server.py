@@ -184,24 +184,25 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     
     exp_id = worker_selections_files[0].split("_")[0]
     # path = "/F/mandera_results/results_def/{}".format(exp_id)
-    path = os.path.join( "F:", "mandera_results", "results_def", exp_id)
+    path = os.path.join("F", os.sep, "mandera_results", "results_def", exp_id)
 
     try:
         print("{}".format(path))
-        os.makedirs("{}".format(path))
+        if not os.path.exists("{}".format(path)):
+            os.makedirs("{}".format(path))
     except OSError as error:
         print(error)   
 
     # save perdiction performance results
-    save_results(results, "{}/{}".format(path, results_files[0]))
+    save_results(results, os.path.join(path, results_files[0]))
 
     # save timing results
-    np.savetxt("{}/{}_timing.csv".format(path, results_files[0][:-4]),
+    np.savetxt(os.path.join(path, "{}_timing.csv".format(results_files[0][:-4])),
                 [start_time, end_time], delimiter=",", fmt="%s")
 
     # only save gradients if not running full defense    
     if def_method is None:
-        save_results(worker_selection, "{}/{}".format(path, worker_selections_files[0]))
+        save_results(worker_selection, os.path.join(path, worker_selections_files[0]))
 
         flat_epochs = flatten_params(epoch_grads)
         for n, flat in enumerate(flat_epochs):
@@ -215,9 +216,9 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
             # append subsequent epochs to existing file
             else:
                 mode = 'a'    
-            df.to_hdf("{}/flatgrads.hdf5".format(path), key="epoch_{}".format(n), mode=mode, index=False)
+            df.to_hdf(os.path.join(path, "flatgrads.hdf5"), key="epoch_{}".format(n), mode=mode, index=False)
         # save list of poisoned workers
-        np.savetxt("{}/{}_poisoned.csv".format(path, worker_selections_files[0][:-4]),
+        np.savetxt(os.path.join(path, "{}_poisoned.csv".format(worker_selections_files[0][:-4])),
                 poisoned_workers, delimiter=",", fmt="%s")
 
     logger.remove(handler)
