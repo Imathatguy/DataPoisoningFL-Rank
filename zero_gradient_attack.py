@@ -110,8 +110,10 @@ if __name__ == '__main__':
         START_EXP_IDX = START_EXP_IDX + 80000
     elif DATASET == "MNIST":
         START_EXP_IDX = START_EXP_IDX + 10040000
+    elif DATASET == "QMNIST":
+        START_EXP_IDX = START_EXP_IDX + 110080000
     else:
-        assert DATASET in ["FASHION", "CIFAR10", "MNIST"]
+        assert DATASET in ["FASHION", "CIFAR10", "MNIST", "QMNIST"]
 
     START_EXP_IDX = START_EXP_IDX + (NUM_POISONED_WORKERS * 100)
 
