@@ -70,8 +70,12 @@ class Arguments:
             self.net = MNISTCNN
             self.train_data_loader_pickle_path = "data_loaders/mnist/train_data_loader.pickle"
             self.test_data_loader_pickle_path = "data_loaders/mnist/test_data_loader.pickle"
+        elif dataset == "QMNIST":
+            self.net = MNISTCNN
+            self.train_data_loader_pickle_path = "data_loaders/qmnist/train_data_loader.pickle"
+            self.test_data_loader_pickle_path = "data_loaders/qmnist/test_data_loader.pickle"
         else:
-            assert dataset in ['CIFAR10', 'FASHION', 'MNIST']
+            assert dataset in ['CIFAR10', 'FASHION', 'MNIST', 'QMNIST']
 
     def get_round_worker_selection_strategy(self):
         return self.round_worker_selection_strategy

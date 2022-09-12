@@ -40,6 +40,18 @@ def generate_train_loader(args, dataset):
 
     return dataset.get_data_loader_from_data(args.get_batch_size(), X, Y)
 
+def generate_noniid_train_loader(args, dataset):
+    train_dataset = dataset.get_train_dataset()
+    X, Y, Z = shuffle_noniid_data(args, train_dataset)
+
+    # data = list(zip(train_dataset[0], train_dataset[1], train_dataset[2]))
+    # X, Y, Z= zip(*data)
+    # X = numpy.asarray(X)
+    # Y = numpy.asarray(Y)
+    # Z = numpy.asarray(Z)
+
+    return dataset.get_noniid_data_loader_from_data(len(train_dataset[2]), X, Y, Z)
+
 def load_test_data_loader(logger, args):
     """
     Loads the test data DataLoader object from a file if available.
@@ -80,6 +92,16 @@ def shuffle_data(args, dataset):
     Y = numpy.asarray(Y)
 
     return X, Y
+
+def shuffle_noniid_data(args, dataset):
+    data = list(zip(dataset[0], dataset[1], dataset[2]))
+    random.shuffle(data)
+    X, Y, Z = zip(*data)
+    X = numpy.asarray(X)
+    Y = numpy.asarray(Y)
+    Z = numpy.asarray(Z)
+
+    return X, Y, Z
 
 def load_saved_data_loader(file_obj):
     return pickle.load(file_obj)

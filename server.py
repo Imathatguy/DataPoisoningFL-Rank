@@ -12,6 +12,7 @@ from loguru import logger
 from federated_learning.arguments import Arguments
 from federated_learning.utils import generate_data_loaders_from_distributed_dataset
 from federated_learning.datasets.data_distribution import distribute_batches_equally
+from federated_learning.datasets.data_distribution import distribute_batches_noniid
 from federated_learning.utils import average_nn_parameters
 from federated_learning.utils import convert_distributed_data_into_numpy
 from federated_learning.utils import poison_data
@@ -165,8 +166,11 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     else:
         poisoned_workers = identify_random_elements(args.get_num_workers(), args.get_num_poisoned_workers())
     
-    # Distribute batches equal volume IID
-    distributed_train_dataset = distribute_batches_equally(train_data_loader, args.get_num_workers())
+    # Distribute batches equal volume IID or nonIID
+    if dataset == "QMNIST":
+        distributed_train_dataset = distribute_batches_noniid(train_data_loader, args.get_num_workers(), args.get_batch_size())
+    else:
+        distributed_train_dataset = distribute_batches_equally(train_data_loader, args.get_num_workers())
     distributed_train_dataset = convert_distributed_data_into_numpy(distributed_train_dataset)
 
     distributed_train_dataset = poison_data(logger, distributed_train_dataset, args.get_num_workers(), poisoned_workers, replacement_method)
@@ -184,7 +188,7 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     
     exp_id = worker_selections_files[0].split("_")[0]
     # path = "/F/mandera_results/results_def/{}".format(exp_id)
-    path = os.path.join("F", os.sep, "mandera_results", "results_def", exp_id)
+    path = os.path.join("F", os.sep, "DataPoisoningFL-Rank", "mandera_results", "results_def", exp_id)
 
     try:
         print("{}".format(path))

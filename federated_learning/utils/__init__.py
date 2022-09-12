@@ -16,6 +16,7 @@ from .file_storage_utils import convert_test_results_to_json
 from .data_loader_utils import generate_data_loaders_from_distributed_dataset
 from .data_loader_utils import load_train_data_loader
 from .data_loader_utils import load_test_data_loader
+from .data_loader_utils import generate_noniid_train_loader
 from .data_loader_utils import generate_train_loader
 from .data_loader_utils import load_data_loader_from_file
 from .data_loader_utils import generate_test_loader

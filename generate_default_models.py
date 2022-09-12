@@ -28,3 +28,10 @@ if __name__ == '__main__':
     # # ---------------------------------
     # full_save_path = os.path.join(args.get_default_model_folder_path(), "MNISTCNN.model")
     # torch.save(MNISTCNN().state_dict(), full_save_path)
+
+    # ---------------------------------
+    # -------- QMNISTCNN --------
+    # Note that we use the same model architecture for between QMNIST and MNIST
+    # ---------------------------------
+    full_save_path = os.path.join(args.get_default_model_folder_path(), "QMNISTCNN.model")
+    torch.save(MNISTCNN().state_dict(), full_save_path)
