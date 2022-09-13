@@ -100,6 +100,11 @@ if __name__ == "__main__":
     #   10050000 for sign flip
     #  110020000 for shifted mean
     # Add 100000 for full defense method.
+    # QMNIST
+    #  110070000 for gaussian noise
+    #  110080000 for zero grad
+    #  110090000 for sign flip
+    #  110060000 for shifted mean
 
     # path for 60000, 80000
     # file_path = 'G:/active_projects/RankPoisonFL/'
@@ -109,10 +114,10 @@ if __name__ == "__main__":
     # file_path = 'I:/DataPoisoning_FL/results/past'
     # path for 10020000, 10030000, 10040000, 10050000
     # file_path = '/scratch2/zha197/results'
-    file_path = os.path.join( "F:", os.sep, "mandera_results", "results_def", "no-defense")
+    file_path = os.path.join( "F:", os.sep, "DataPoisoningFL-Rank", "mandera_results", "results_def")
 
-    exp_series = 110020000
-    n_runs = 10
+    exp_series = 110070000
+    n_runs = 20
     # n_poi_list = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
     n_poi_list = [5, 10, 15, 20, 25, 30]
     max_epochs = 25
@@ -121,8 +126,22 @@ if __name__ == "__main__":
 
     print(exp_series)
 
+    # Check all required files exist before processings
+    errors = []
     for n_poi in tqdm(n_poi_list):
+        for n_run in tqdm(range(n_runs)):
+            exp_code = exp_series + n_poi*100 + n_run
+            p_workers_file = "{}/{}/{}_workers_selected_poisoned.csv".format(file_path, exp_code, exp_code)
+            hdf5_file = "{}/{}/flatgrads.hdf5".format(file_path, exp_code)
 
+            if os.path.exists(p_workers_file) & os.path.exists(hdf5_file):
+                continue
+            else:
+                errors.append(exp_code)
+    assert len(errors) == 0, print(errors)
+
+    # begin processing
+    for n_poi in tqdm(n_poi_list):
         # exp_bulk = "{}XX_results.zip".format(str(exp_series + n_poi*100)[:3])
         # print(exp_bulk)
 
