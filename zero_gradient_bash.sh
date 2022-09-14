@@ -13,7 +13,7 @@ do
         do 
             for P in 5 10 15 20 25 30
             do 
-                python shifted_mean_attack.py --dataset $D --p_workers $P --def_method $M --rep_n $R
+                python zero_gradient_attack.py --dataset $D --p_workers $P --def_method $M --rep_n $R
             done
         done
     done
