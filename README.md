@@ -32,6 +32,9 @@ Some pointers & general information:
 ### Experiments - Malicious Node detection by MANDERA
 
 Running an attack: 
+
+First create result files with no defence
+
 ```
 cd process_results
 python3 process_results.py
@@ -46,11 +49,12 @@ Note that gradient saving requires a substantial amount of disk space as has bee
 
 ### Experiments - MANDERA for defending against poisoning attacks
 To run the full set of experiments for each of the 4 attacks and defenses
-See the respective bash script `label_flipping_batch.sh`, `guassian_attack.sh`, `zero_gradient_attack.sh`, `sign_flipping_batch.sh`, '
+See the respective bash script `mean_shift_bash.sh`, `guassian_bash.sh`, `zero_gradient_bash.sh`, `sign_flipping_bash.sh`
+See the respective bat script `mean_shift_bash.bat`, `guassian_bash.bat`, `zero_gradient_bash.bat`, `sign_flipping_bash.bat`
+for examples on how to sequentially run attack scripts without Slurm
 
 The batch experiments were run on a HPC environment with a slurm scheduler.
-
-Running an attack: ```bash label_flipping.batch.sh```
+Running an attack: ```bash guassian_batch.sh```
 
 
 ### Experiments - Computational Efficiency
