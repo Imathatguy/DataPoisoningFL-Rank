@@ -109,3 +109,5 @@ data_loaders/
 data/
 slurm-*.out
 # default_models/
+
+mandera_results/*
