@@ -4,6 +4,10 @@ from .noise_injection_methods import shifted_mean
 from .noise_injection_methods import zero_gradient
 from .noise_injection_methods import sign_flipping
 from .noise_injection_methods import no_noise
+from .falling_empire_attack_methods import falling_empires_n10
+from .falling_empire_attack_methods import falling_empires_p10
+from .falling_empire_attack_methods import falling_empires_n01
+from .falling_empire_attack_methods import falling_empires_p01
 from .label_replacement import apply_class_label_replacement
 from .tensor_converter import convert_distributed_data_into_numpy
 from .identify_random_elements import identify_random_elements

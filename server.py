@@ -188,7 +188,8 @@ def run_exp(replacement_method, num_poisoned_workers, KWARGS, client_selection_s
     
     exp_id = worker_selections_files[0].split("_")[0]
     # path = "/F/mandera_results/results_def/{}".format(exp_id)
-    path = os.path.join("F", os.sep, "DataPoisoningFL-Rank", "mandera_results", "results_def", exp_id)
+    path = os.path.join(".", "mandera_results", "results_def", exp_id)
+    # path = os.path.join("F", os.sep, "DataPoisoningFL-Rank", "mandera_results", "results_def", exp_id)
 
     try:
         print("{}".format(path))
